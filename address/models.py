@@ -69,59 +69,59 @@ class Address(models.Model):
 
 
 class AddressField(models.ForeignKey):
-    # __metaclass__ = models.SubfieldBase
+    __metaclass__ = models.SubfieldBase
     description = 'An address'
 
     def __init__(self, **kwargs):
         super(AddressField, self).__init__(Address, **kwargs)
 
-    # def to_python(self, value):
+    def to_python(self, value):
 
-    #     # A dictionary of named address components.
-    #     if isinstance(value, dict):
-    #         country = value.get('country', '')
-    #         country_code = value.get('country_code', '')
-    #         state = value.get('state', '')
-    #         state_code = value.get('state_code', '')
-    #         locality = value.get('locality', '')
-    #         postal_code = value.get('postal_code', '')
-    #         street_address = value.get('street_address', '')
+        # A dictionary of named address components.
+        if isinstance(value, dict):
+            country = value.get('country', '')
+            country_code = value.get('country_code', '')
+            state = value.get('state', '')
+            state_code = value.get('state_code', '')
+            locality = value.get('locality', '')
+            postal_code = value.get('postal_code', '')
+            street_address = value.get('street_address', '')
 
-    #         # Handle the country.
-    #         if not country:
-    #             raise TypeError('Must have a country name.')
-    #         try:
-    #             country_obj = Country.objects.get(name=country)
-    #         except Country.DoesNotExist:
-    #             country_obj = Country(name=country, code=country_code)
+            # Handle the country.
+            if not country:
+                raise TypeError('Must have a country name.')
+            try:
+                country_obj = Country.objects.get(name=country)
+            except Country.DoesNotExist:
+                country_obj = Country(name=country, code=country_code)
 
-    #         # Handle the state.
-    #         try:
-    #             state_obj = State.objects.get(name=state, country=country_obj)
-    #         except State.DoesNotExist:
-    #             state_obj = State(name=state, code=state_code, country=country_obj)
+            # Handle the state.
+            try:
+                state_obj = State.objects.get(name=state, country=country_obj)
+            except State.DoesNotExist:
+                state_obj = State(name=state, code=state_code, country=country_obj)
 
-    #         # Handle the locality.
-    #         try:
-    #             locality_obj = Locality.objects.get(name=locality, state=state_obj)
-    #         except Locality.DoesNotExist:
-    #             locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
+            # Handle the locality.
+            try:
+                locality_obj = Locality.objects.get(name=locality, state=state_obj)
+            except Locality.DoesNotExist:
+                locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
 
-    #         # Handle the address.
-    #         try:
-    #             address_obj = Address.objects.get(street_address=street_address, locality=locality_obj)
-    #         except Address.DoesNotExist:
-    #             address_obj = Address(street_address=street_address, locality=locality_obj)
+            # Handle the address.
+            try:
+                address_obj = Address.objects.get(street_address=street_address, locality=locality_obj)
+            except Address.DoesNotExist:
+                address_obj = Address(street_address=street_address, locality=locality_obj)
 
-    #         # Done.
-    #         return address_obj
+            # Done.
+            return address_obj
 
-    #     # Is it already an address object?
-    #     elif isinstance(value, Address):
-    #         return value
+        # Is it already an address object?
+        elif isinstance(value, Address):
+            return value
 
-    #     # Try to deserialise a string ... how?
-    #     raise ValidationError('Invalid locality value')
+        # Try to deserialise a string ... how?
+        raise ValidationError('Invalid locality value')
 
     def pre_save(self, model_instance, add):
         address = getattr(model_instance, self.name)
@@ -132,52 +132,3 @@ class AddressField(models.ForeignKey):
         address.locality_id = address.locality.pk
         address.save()
         return address.pk
-
-
-def address_hack(value):
-
-    # A dictionary of named address components.
-    if isinstance(value, dict):
-        country = value.get('country', '')
-        country_code = value.get('country_code', '')
-        state = value.get('state', '')
-        state_code = value.get('state_code', '')
-        locality = value.get('locality', '')
-        postal_code = value.get('postal_code', '')
-        street_address = value.get('street_address', '')
-
-        # Handle the country.
-        if not country:
-            raise TypeError('Must have a country name.')
-        try:
-            country_obj = Country.objects.get(name=country)
-        except Country.DoesNotExist:
-            country_obj = Country(name=country, code=country_code)
-
-        # Handle the state.
-        try:
-            state_obj = State.objects.get(name=state, country=country_obj)
-        except State.DoesNotExist:
-            state_obj = State(name=state, code=state_code, country=country_obj)
-
-        # Handle the locality.
-        try:
-            locality_obj = Locality.objects.get(name=locality, state=state_obj)
-        except Locality.DoesNotExist:
-            locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
-
-        # Handle the address.
-        try:
-            address_obj = Address.objects.get(street_address=street_address, locality=locality_obj)
-        except Address.DoesNotExist:
-            address_obj = Address(street_address=street_address, locality=locality_obj)
-
-        # Done.
-        return address_obj
-
-    # Is it already an address object?
-    elif isinstance(value, Address):
-        return value
-
-    # Try to deserialise a string ... how?
-    raise ValidationError('Invalid locality value')
