@@ -1,9 +1,6 @@
 ==============
 django-address
 ==============
---------------------
-Simplified addresses
---------------------
 
 Installation
 ============
@@ -21,7 +18,25 @@ It's currently assumed any address is representable using four components:
 country, state, locality and street address. In addition, country code, state
 code and postal code may be stored, if they exist.
 
-There are four Django models used: Country, State, Locality and Address.
+There are four Django models used::
+
+  Country
+    name
+    code
+
+  State
+    name
+    code
+    country -> Country
+
+  Locality
+    name
+    postal_code
+    state -> State
+
+  Address
+    street_address
+    locality -> Locality
 
 Address Field
 =============
@@ -34,7 +49,7 @@ Creation
 --------
 
 It can be created using the same optional arguments as a ForeignKey field.
-For example:::
+For example::
 
   class MyModel(models.Model):
     address1 = AddressField()
@@ -43,27 +58,35 @@ For example:::
 Setting Values
 --------------
 
-Values can be set either by assigning an Address object:::
+Values can be set either by assigning an Address object::
 
   obj.address = Address.objects.create(...)
 
-Or, more conveniently, by supplying a dictionary of address components:
+Or, more conveniently, by supplying a dictionary of address components::
 
   obj.address = {'street_address': '1 Somewhere Ave', ...}
 
-The structure of the address components is as follows:::
+The structure of the address components is as follows::
 
   {
-    'street_address': '',
-    'locality': '',
-    'postal_code': '',
-    'state': '',
-    'state_code': '',
-    'country': '',
-    'country_code': ''
+    'street_address': '1 Somewhere Ave',
+    'locality': 'Northcote',
+    'postal_code': '3070',
+    'state': 'Victoria',
+    'state_code': 'VIC',
+    'country': 'Australia',
+    'country_code': 'AU'
   }
 
-Usage
-=====
+The only required components are ``country`` and ``country_code``. Everything
+else can be safely omitted. This is mostly to allow whole regions as valid
+addresses (I'm not actually too sure this is a good idea yet).
 
-TODO
+Getting Values
+--------------
+
+When accessed, the address field simply returns an Address object. This way
+all components may be accessed naturally through the object. For example::
+
+  street_address = obj.address.name
+  state_name = obj.address.locality.state.name
