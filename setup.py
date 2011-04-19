@@ -7,7 +7,7 @@ setup(
     url='https://github.com/furious-luke/django-address',
     license='',
     descriptions='A django application for describing addresses.',
-    long_description=open(os.path.join(os.path.dirname(__file__), 'README')).read(),
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     author='Luke Hodkinson',
     author_email='furious.luke@gmail.com',
     packages=find_packages(),
