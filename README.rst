@@ -2,6 +2,14 @@
 django-address
 ==============
 
+Disclaimer
+==========
+
+These instructions are a little shabby, I havn't had a whole lot of time to
+devote to explaining things thoroughly. If you're interested in using this
+but are having trouble getting it setup please feel free to email me, I'll
+assist as best I can and update the instructions in the process. Cheers!
+
 Installation
 ============
 
