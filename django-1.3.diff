@@ -1,0 +1,41 @@
+Index: django/db/models/fields/subclassing.py
+===================================================================
+--- django/db/models/fields/subclassing.py	(revision 16044)
++++ django/db/models/fields/subclassing.py	(working copy)
+@@ -87,16 +87,24 @@
+     """
+     A placeholder class that provides a way to set the attribute on the model.
+     """
+-    def __init__(self, field):
++    def __init__(self, field, old_descr=None):
+         self.field = field
++        self.old_descr = old_descr
+ 
+     def __get__(self, obj, type=None):
+         if obj is None:
+             raise AttributeError('Can only be accessed via an instance.')
+-        return obj.__dict__[self.field.name]
++        if self.old_descr:
++            return self.old_descr.__get__(obj, type)
++        else:
++            return obj.__dict__[self.field.name]
+ 
+     def __set__(self, obj, value):
+-        obj.__dict__[self.field.name] = self.field.to_python(value)
++        val = self.field.to_python(value)
++        if self.old_descr:
++            self.old_descr.__set__(obj, val)
++        else:
++            obj.__dict__[self.field.name] = val
+ 
+ def make_contrib(superclass, func=None):
+     """
+@@ -112,6 +120,7 @@
+             func(self, cls, name)
+         else:
+             super(superclass, self).contribute_to_class(cls, name)
+-        setattr(cls, self.name, Creator(self))
++        old_descr = cls.__dict__.get(self.name)
++        setattr(cls, self.name, Creator(self, old_descr))
+ 
+     return contribute_to_class
