@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from conv import to_address, GoogleMapsError
 
 
 class Country(models.Model):
@@ -77,8 +78,33 @@ class AddressField(models.ForeignKey):
 
     def to_python(self, value):
 
+        # Check if we have a tuple first, because we will convert it to a dictionary
+        # and let the dictionary handler deal with it.
+        if isinstance(value, tuple) and len(value) >= 1:
+
+            # Extract our name and address.
+            if len(value) >= 2:
+                name = value[0]
+                address = value[1]
+            else:
+                name = None
+                address = value[0]
+
+            # Convert to a dictionary value.
+            if name:
+                try:
+                    value = to_address(name + ' near ' + address)
+                except GoogleMapsError:
+                    name = None
+            if not name:
+                value = to_address(address)
+
+        # Is it already an address object?
+        if isinstance(value, Address):
+            return value
+
         # A dictionary of named address components.
-        if isinstance(value, dict):
+        elif isinstance(value, dict):
             country = value.get('country', '')
             country_code = value.get('country_code', '')
             state = value.get('state', '')
@@ -115,10 +141,6 @@ class AddressField(models.ForeignKey):
 
             # Done.
             return address_obj
-
-        # Is it already an address object?
-        elif isinstance(value, Address):
-            return value
 
         # Try to deserialise a string ... how?
         raise ValidationError('Invalid locality value')

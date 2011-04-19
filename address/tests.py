@@ -167,7 +167,7 @@ class AddressFieldTestCase(TestCase):
         }
         self.test = self.TestModel()
 
-    def test_assignment(self):
+    def test_assignment_from_dict(self):
         self.test.address = self.ad1_dict
         self.assertEqual(self.test.address.street_address, self.ad1_dict['street_address'])
         self.assertEqual(self.test.address.locality.name, self.ad1_dict['locality'])
@@ -176,6 +176,24 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.code, self.ad1_dict['state_code'])
         self.assertEqual(self.test.address.locality.state.country.name, self.ad1_dict['country'])
         self.assertEqual(self.test.address.locality.state.country.code, self.ad1_dict['country_code'])
+
+    def test_assignment_from_tuple(self):
+        self.test.address = ('110 Swanston Street, Melbourne, Australia',)
+        self.assertEqual(self.test.address.street_address, '110 Swanston St')
+        self.assertEqual(self.test.address.locality.name, 'Melbourne')
+        self.assertEqual(self.test.address.locality.postal_code, '3000')
+        self.assertEqual(self.test.address.locality.state.name, 'VIC')
+        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
+        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
+
+    def test_assignment_from_tuple_with_name(self):
+        self.test.address = ('cherry', '103 Flinders Lane, Melbourne, Australia')
+        self.assertEqual(self.test.address.street_address, '103 Flinders Ln')
+        self.assertEqual(self.test.address.locality.name, 'Melbourne')
+        self.assertEqual(self.test.address.locality.postal_code, '3000')
+        self.assertEqual(self.test.address.locality.state.name, 'VIC')
+        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
+        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
 
     def test_save(self):
         self.test.address = self.ad1_dict

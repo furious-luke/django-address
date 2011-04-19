@@ -91,6 +91,13 @@ The only required components are ``country`` and ``country_code``. Everything
 else can be safely omitted. This is mostly to allow whole regions as valid
 addresses (I'm not actually too sure this is a good idea yet).
 
+The final method for setting addresses is using a tuple of strings. If the tuple
+is of length one, the only entry is taken to be an approximate address. If the
+tuple is of length two or more, the first entry is taken to be the name of a
+nearby landmark and the second entry is taken to be an approximate address. These
+values are then used in a Google Maps lookup, the result being stored on the
+field.
+
 Getting Values
 --------------
 
