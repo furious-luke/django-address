@@ -76,7 +76,15 @@ class AddressField(models.ForeignKey):
     def __init__(self, **kwargs):
         super(AddressField, self).__init__(Address, **kwargs)
 
-    def to_python(self, value):
+    def str_to_dict(self, value):
+        if value is None:
+            return None
+
+        # Check for a string not conforming to the serialised format.
+        if isinstance(value, basestring):
+            # TODO: Check for serialised version.
+            # Convert to a tuple for the next part.
+            value = (value,)
 
         # Check if we have a tuple first, because we will convert it to a dictionary
         # and let the dictionary handler deal with it.
@@ -98,6 +106,13 @@ class AddressField(models.ForeignKey):
                     name = None
             if not name:
                 value = to_address(address)
+
+        return value
+
+    def to_python(self, value):
+        value = self.str_to_dict(value)
+        if value is None:
+            return None
 
         # Is it already an address object?
         if isinstance(value, Address):
@@ -147,6 +162,8 @@ class AddressField(models.ForeignKey):
 
     def pre_save(self, model_instance, add):
         address = getattr(model_instance, self.name)
+        if address is None:
+            return address
         address.locality.state.country.save()
         address.locality.state.save()
         address.locality.state_id = address.locality.state.pk

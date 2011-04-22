@@ -195,6 +195,15 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
         self.assertEqual(self.test.address.locality.state.country.code, 'AU')
 
+    def test_assignment_from_str(self):
+        self.test.address = '110 Swanston Street, Melbourne, Australia'
+        self.assertEqual(self.test.address.street_address, '110 Swanston St')
+        self.assertEqual(self.test.address.locality.name, 'Melbourne')
+        self.assertEqual(self.test.address.locality.postal_code, '3000')
+        self.assertEqual(self.test.address.locality.state.name, 'VIC')
+        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
+        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
+
     def test_save(self):
         self.test.address = self.ad1_dict
         self.test.save()
