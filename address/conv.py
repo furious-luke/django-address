@@ -26,12 +26,11 @@ def to_address(val):
     address = val['Placemark'][0]['address']
     details = val['Placemark'][0]['AddressDetails']
     country = details['Country']['CountryName']
-    country_code = details['Country'].get('CountryNameCode', '')
-    state = details['Country']['AdministrativeArea']['AdministrativeAreaName']
-    state_code = details['Country']['AdministrativeArea'].get('AdministrativeAreaNameCode', '')
-    locality = details['Country']['AdministrativeArea']['Locality']['LocalityName']
-    postal_code = details['Country']['AdministrativeArea']['Locality']['PostalCode']['PostalCodeNumber']
-    street_address = details['Country']['AdministrativeArea']['Locality']['Thoroughfare'].get('ThoroughfareName')
+    state = details['Country'].get('AdministrativeArea', '').get('AdministrativeAreaName', '')
+    state_code = details['Country'].get('AdministrativeArea', '').get('AdministrativeAreaNameCode', '')
+    locality = details['Country'].get('AdministrativeArea', '').get('Locality', '').get('LocalityName']
+    postal_code = details['Country'].get('AdministrativeArea', '').get('Locality', '').get('PostalCode', '').get('PostalCodeNumber', '')
+    street_address = details['Country'].get('AdministrativeArea', '').get('Locality', '').get('Thoroughfare'].get('ThoroughfareName')
     return dict(
         country=country,
         country_code=country_code,
