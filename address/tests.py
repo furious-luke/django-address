@@ -11,12 +11,6 @@ class CountryTestCase(TestCase):
         self.nz = models.Country.objects.create(name='New Zealand', code='NZ')
         self.be = models.Country.objects.create(name='Belgium', code='BE')
 
-    def test_required_name(self):
-        self.assertRaises(IntegrityError, models.Country.objects.create, code='BL')
-
-    def test_required_code(self):
-        self.assertRaises(IntegrityError, models.Country.objects.create, name='Blah')
-
     def test_ordering(self):
         qs = models.Country.objects.all()
         self.assertEqual(qs.count(), 3)
@@ -203,6 +197,12 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.name, 'VIC')
         self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
         self.assertEqual(self.test.address.locality.state.country.code, 'AU')
+
+    def test_unprocessed(self):
+        address = 'lkjsdkfjkjkdls'
+        self.test.address = address
+        self.assertEqual(self.test.address.street_address, '')
+        self.assertEqual(self.test.address.unprocessed, address)
 
     def test_save(self):
         self.test.address = self.ad1_dict

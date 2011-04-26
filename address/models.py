@@ -1,11 +1,16 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from conv import to_address, GoogleMapsError
+from djangoutils.conv import to_address
+
+try:
+    from googlemaps import GoogleMapsError
+except:
+    pass
 
 
 class Country(models.Model):
-    name = models.CharField(max_length=40, unique=True)
-    code = models.CharField(max_length=2, unique=True, primary_key=True)
+    name = models.CharField(max_length=40, unique=True, blank=True)
+    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
 
     class Meta:
         verbose_name_plural = 'Countries'
@@ -55,18 +60,23 @@ class Locality(models.Model):
 class Address(models.Model):
     street_address = models.CharField(max_length=100, blank=True)
     locality = models.ForeignKey(Locality, related_name='addresses')
+    unprocessed = models.CharField(max_length=150, blank=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Addresses'
-        unique_together = ('street_address', 'locality')
         ordering = ('locality', 'street_address')
 
     def __unicode__(self):
-        txt = ''
-        if self.street_address:
-            txt += u'%s, '%self.street_address
-        txt += unicode(self.locality)
-        return txt
+        if self.unprocessed:
+            return self.unprocessed
+        else:
+            txt = ''
+            if self.street_address:
+                txt += u'%s, '%self.street_address
+            txt += unicode(self.locality)
+            return txt
 
 
 class AddressField(models.ForeignKey):
@@ -105,7 +115,10 @@ class AddressField(models.ForeignKey):
                 except GoogleMapsError:
                     name = None
             if not name:
-                value = to_address(address)
+                try:
+                    value = to_address(address)
+                except GoogleMapsError:
+                    value = {'unprocessed': address}
 
         return value
 
@@ -120,6 +133,7 @@ class AddressField(models.ForeignKey):
 
         # A dictionary of named address components.
         elif isinstance(value, dict):
+            unprocessed=value.get('unprocessed', '')
             country = value.get('country', '')
             country_code = value.get('country_code', '')
             state = value.get('state', '')
@@ -127,10 +141,10 @@ class AddressField(models.ForeignKey):
             locality = value.get('locality', '')
             postal_code = value.get('postal_code', '')
             street_address = value.get('street_address', '')
+            latitude = value.get('latitude')
+            longitude = value.get('longitude')
 
             # Handle the country.
-            if not country:
-                raise TypeError('Must have a country name.')
             try:
                 country_obj = Country.objects.get(name=country)
             except Country.DoesNotExist:
@@ -150,9 +164,19 @@ class AddressField(models.ForeignKey):
 
             # Handle the address.
             try:
-                address_obj = Address.objects.get(street_address=street_address, locality=locality_obj)
+                address_obj = Address.objects.get(
+                    street_address=street_address,
+                    locality=locality_obj,
+                    unprocessed=unprocessed
+                )
             except Address.DoesNotExist:
-                address_obj = Address(street_address=street_address, locality=locality_obj)
+                address_obj = Address(
+                    street_address=street_address,
+                    locality=locality_obj,
+                    unprocessed=unprocessed,
+                    latitude=latitude,
+                    longitude=longitude,
+                )
 
             # Done.
             return address_obj
@@ -165,6 +189,7 @@ class AddressField(models.ForeignKey):
         if address is None:
             return address
         address.locality.state.country.save()
+        address.locality.state.country_id = address.locality.state.country.pk
         address.locality.state.save()
         address.locality.state_id = address.locality.state.pk
         address.locality.save()
