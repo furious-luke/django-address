@@ -1,5 +1,7 @@
+import urllib2
 from django.db import models
 from django.core.exceptions import ValidationError
+from django import forms
 from djangoutils.conv import to_address
 
 try:
@@ -112,12 +114,12 @@ class AddressField(models.ForeignKey):
             if name:
                 try:
                     value = to_address(name + ' near ' + address)
-                except GoogleMapsError:
+                except GoogleMapsError, urllib2.HTTPError:
                     name = None
             if not name:
                 try:
                     value = to_address(address)
-                except GoogleMapsError:
+                except GoogleMapsError, urllib2.HTTPError:
                     value = {'unprocessed': address}
 
         return value
@@ -196,3 +198,8 @@ class AddressField(models.ForeignKey):
         address.locality_id = address.locality.pk
         address.save()
         return address.pk
+
+    def formfield(self, **kwargs):
+        defaults = dict(form_class=forms.CharField)
+        defaults.update(kwargs)
+        return super(models.ForeignKey, self).formfield(**defaults)
