@@ -1,6 +1,6 @@
 Index: django/db/models/fields/subclassing.py
 ===================================================================
---- django/db/models/fields/subclassing.py	(revision 16044)
+--- django/db/models/fields/subclassing.py	(revision 16141)
 +++ django/db/models/fields/subclassing.py	(working copy)
 @@ -87,16 +87,24 @@
      """
@@ -39,3 +39,32 @@ Index: django/db/models/fields/subclassing.py
 +        setattr(cls, self.name, Creator(self, old_descr))
  
      return contribute_to_class
+Index: django/contrib/admin/options.py
+===================================================================
+--- django/contrib/admin/options.py	(revision 16141)
++++ django/contrib/admin/options.py	(working copy)
+@@ -110,14 +110,17 @@
+             # rendered output. formfield can be None if it came from a
+             # OneToOneField with parent_link=True or a M2M intermediary.
+             if formfield and db_field.name not in self.raw_id_fields:
+-                related_modeladmin = self.admin_site._registry.get(
+-                                                            db_field.rel.to)
+-                can_add_related = bool(related_modeladmin and
+-                            related_modeladmin.has_add_permission(request))
+-                formfield.widget = widgets.RelatedFieldWidgetWrapper(
+-                            formfield.widget, db_field.rel, self.admin_site,
+-                            can_add_related=can_add_related)
+ 
++                # Only do this bit if the formfield is such that it accepts choices.
++                if hasattr(formfield.widget, 'choices'):
++                    related_modeladmin = self.admin_site._registry.get(
++                        db_field.rel.to)
++                    can_add_related = bool(related_modeladmin and
++                                           related_modeladmin.has_add_permission(request))
++                    formfield.widget = widgets.RelatedFieldWidgetWrapper(
++                        formfield.widget, db_field.rel, self.admin_site,
++                        can_add_related=can_add_related)
++
+             return formfield
+ 
+         # If we've got overrides for the formfield defined, use 'em. **kwargs
