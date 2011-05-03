@@ -1,7 +1,7 @@
 import urllib2
 from django.db import models
 from django.core.exceptions import ValidationError
-from django import forms
+import forms
 from djangoutils.conv import to_address
 
 try:
@@ -133,6 +133,11 @@ class AddressField(models.ForeignKey):
         if isinstance(value, Address):
             return value
 
+        # If we have an integer, assume it is a model primary key. This is mostly for
+        # Django being a cunt.
+        elif isinstance(value, int):
+            return value
+
         # A dictionary of named address components.
         elif isinstance(value, dict):
             unprocessed=value.get('unprocessed', '')
@@ -200,6 +205,9 @@ class AddressField(models.ForeignKey):
         return address.pk
 
     def formfield(self, **kwargs):
-        defaults = dict(form_class=forms.CharField)
+        defaults = dict(form_class=forms.AddressField)
         defaults.update(kwargs)
         return super(models.ForeignKey, self).formfield(**defaults)
+
+    def value_from_object(self, obj):
+        return unicode(getattr(obj, self.name))
