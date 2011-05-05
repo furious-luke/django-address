@@ -6,3 +6,6 @@
 build*
 .sconf_temp
 .sconsign.dblite
+dist
+*.egg-info
+
