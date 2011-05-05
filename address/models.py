@@ -210,4 +210,7 @@ class AddressField(models.ForeignKey):
         return super(models.ForeignKey, self).formfield(**defaults)
 
     def value_from_object(self, obj):
-        return unicode(getattr(obj, self.name))
+        value = getattr(obj, self.name)
+        if value is None:
+            value = ''
+        return unicode(value)
