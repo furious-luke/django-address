@@ -86,6 +86,7 @@ class AddressField(models.ForeignKey):
     description = 'An address'
 
     def __init__(self, **kwargs):
+        kwargs.pop('to', None)
         super(AddressField, self).__init__(Address, **kwargs)
 
     def str_to_dict(self, value):
@@ -214,3 +215,10 @@ class AddressField(models.ForeignKey):
         if value is None:
             value = ''
         return unicode(value)
+
+
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], ['^address\.models\.AddressField'])
+except:
+    pass
