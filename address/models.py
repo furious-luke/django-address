@@ -62,7 +62,6 @@ class Locality(models.Model):
 class Address(models.Model):
     street_address = models.CharField(max_length=100, blank=True)
     locality = models.ForeignKey(Locality, related_name='addresses')
-    unprocessed = models.CharField(max_length=150, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
@@ -71,14 +70,11 @@ class Address(models.Model):
         ordering = ('locality', 'street_address')
 
     def __unicode__(self):
-        if self.unprocessed:
-            return self.unprocessed
-        else:
-            txt = ''
-            if self.street_address:
-                txt += u'%s, '%self.street_address
-            txt += unicode(self.locality)
-            return txt
+        txt = ''
+        if self.street_address:
+            txt += u'%s, '%self.street_address
+        txt += unicode(self.locality)
+        return txt
 
 
 class AddressField(models.ForeignKey):
@@ -87,6 +83,7 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, **kwargs):
         kwargs.pop('to', None)
+        self._geo_accuracy = kwargs.pop('geo_accuracy', 1)
         super(AddressField, self).__init__(Address, **kwargs)
 
     def str_to_dict(self, value):
@@ -114,14 +111,11 @@ class AddressField(models.ForeignKey):
             # Convert to a dictionary value.
             if name:
                 try:
-                    value = to_address(name + ' near ' + address)
+                    value = to_address(name + ' near ' + address, self._geo_accuracy)
                 except GoogleMapsError, urllib2.HTTPError:
                     name = None
             if not name:
-                try:
-                    value = to_address(address)
-                except GoogleMapsError, urllib2.HTTPError:
-                    value = {'unprocessed': address}
+                value = to_address(address, self._geo_accuracy)
 
         return value
 
@@ -141,7 +135,6 @@ class AddressField(models.ForeignKey):
 
         # A dictionary of named address components.
         elif isinstance(value, dict):
-            unprocessed=value.get('unprocessed', '')
             country = value.get('country', '')
             country_code = value.get('country_code', '')
             state = value.get('state', '')
@@ -175,13 +168,11 @@ class AddressField(models.ForeignKey):
                 address_obj = Address.objects.get(
                     street_address=street_address,
                     locality=locality_obj,
-                    unprocessed=unprocessed
                 )
             except Address.DoesNotExist:
                 address_obj = Address(
                     street_address=street_address,
                     locality=locality_obj,
-                    unprocessed=unprocessed,
                     latitude=latitude,
                     longitude=longitude,
                 )

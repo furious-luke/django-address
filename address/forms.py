@@ -8,6 +8,10 @@ except:
     pass
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 class AddressField(forms.CharField):
     widget = forms.TextInput(attrs={'size': '50'})
 
