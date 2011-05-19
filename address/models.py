@@ -9,6 +9,9 @@ try:
 except:
     pass
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
@@ -130,7 +133,7 @@ class AddressField(models.ForeignKey):
 
         # If we have an integer, assume it is a model primary key. This is mostly for
         # Django being a cunt.
-        elif isinstance(value, int):
+        elif isinstance(value, (int, long)):
             return value
 
         # A dictionary of named address components.
@@ -177,6 +180,9 @@ class AddressField(models.ForeignKey):
                     longitude=longitude,
                 )
 
+            # Need to save here to help Django on it's way.
+            self._do_save(address_obj)
+
             # Done.
             return address_obj
 
@@ -185,16 +191,7 @@ class AddressField(models.ForeignKey):
 
     def pre_save(self, model_instance, add):
         address = getattr(model_instance, self.name)
-        if address is None:
-            return address
-        address.locality.state.country.save()
-        address.locality.state.country_id = address.locality.state.country.pk
-        address.locality.state.save()
-        address.locality.state_id = address.locality.state.pk
-        address.locality.save()
-        address.locality_id = address.locality.pk
-        address.save()
-        return address.pk
+        return self._do_save(address)
 
     def formfield(self, **kwargs):
         defaults = dict(form_class=forms.AddressField)
@@ -206,6 +203,18 @@ class AddressField(models.ForeignKey):
         if value is None:
             value = ''
         return unicode(value)
+
+    def _do_save(self, address):
+        if address is None:
+            return address
+        address.locality.state.country.save()
+        address.locality.state.country_id = address.locality.state.country.pk
+        address.locality.state.save()
+        address.locality.state_id = address.locality.state.pk
+        address.locality.save()
+        address.locality_id = address.locality.pk
+        address.save()
+        return address.pk
 
 
 try:
