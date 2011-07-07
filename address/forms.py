@@ -13,8 +13,9 @@ __all__ = ['AddressWidget', 'AddressField']
 
 
 class AddressWidget(forms.Textarea):
-    class Media:
-        js = ('js/jquery.min.js', 'address/js/address.js',)
+
+    # class Media:
+    #     js = ('js/jquery.min.js', 'address/js/address.js',)
 
     def render(self, name, value, attrs=None, **kwargs):
 
@@ -27,16 +28,20 @@ class AddressWidget(forms.Textarea):
             ad = value.as_dict()
 
         elems = [
-            '<ul class="address-components">',
-            '<button type="button" class="address-lookup-btn">Google lookup</button>',
+            '<ul>',
+#            '<button type="button" class="address-lookup-btn">Google lookup</button>',
         ]
         components = ['street_address', 'locality', 'postal_code', 'state', 'state_code',
                       'country', 'country_code', 'latitude', 'longitude']
         for com in components:
+            val = ad.get(com, '')
+            if val is None:
+                val = ''
             elems.extend([
                 '<li>',
-                '<label for="id_address-%s">%s</label>'%(com, com.replace('_', ' ').capitalize()),
-                '<input type="text" id="id_address-%s" name="address-%s" value="%s" />'%(com, com, ad.get(com, '')),
+                '<label>%s'%com.replace('_', ' ').capitalize(),
+                '<input type="text" class="textinput textInput" id="id_address-%s" name="address-%s" value="%s" />'%(com, com, val),
+                '</label>',
                 '</li>',
             ])
         elems.append('</ul>')
@@ -58,7 +63,7 @@ class AddressWidget(forms.Textarea):
 
 
 class AddressField(forms.Field):
-    widget = AddressWidget()
+    widget = AddressWidget
 
     def to_python(self, value):
         if value is None:

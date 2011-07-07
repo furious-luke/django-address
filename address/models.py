@@ -21,7 +21,7 @@ class Country(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return u'%s'%self.name
+        return u'%s'%(self.code or self.name)
 
 
 class State(models.Model):
@@ -34,10 +34,11 @@ class State(models.Model):
         ordering = ('country', 'name')
 
     def __unicode__(self):
-        txt = ''
-        if self.name:
-            txt += u'%s, '%self.name
-        txt += unicode(self.country)
+        txt = u'%s'%(self.code or self.name)
+        country = u'%s'%self.country
+        if country and txt:
+            txt += u', '
+        txt += country
         return txt
 
 
@@ -52,18 +53,18 @@ class Locality(models.Model):
         ordering = ('state', 'name')
 
     def __unicode__(self):
-        txt = ''
-        if self.name:
-            txt = u'%s, '%self.name
-            if self.postal_code:
-                txt += u'%s, '%self.postal_code
-        txt += unicode(self.state)
+        txt = u'%s'%self.name
+        state = u'%s'%self.state
+        if txt and state:
+            txt += u', '
+        txt += state
         return txt
 
 
 class Address(models.Model):
     street_address = models.CharField(max_length=100, blank=True)
     locality = models.ForeignKey(Locality, related_name='addresses')
+    formatted = models.CharField(max_length=200, blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
@@ -72,10 +73,11 @@ class Address(models.Model):
         ordering = ('locality', 'street_address')
 
     def __unicode__(self):
-        txt = ''
-        if self.street_address:
-            txt += u'%s, '%self.street_address
-        txt += unicode(self.locality)
+        txt = u'%s'%self.street_address
+        locality = u'%s'%self.locality
+        if txt and locality:
+            txt += u', '
+        txt += locality
         return txt
 
     def as_dict(self):
@@ -87,6 +89,7 @@ class Address(models.Model):
             state_code=self.locality.state.code,
             country=self.locality.state.country.name,
             country_code=self.locality.state.country.code,
+            formatted=self.formatted,
             latitude=self.latitude,
             longitude=self.longitude,
         )
@@ -157,8 +160,9 @@ class AddressField(models.ForeignKey):
             locality = value.get('locality', '')
             postal_code = value.get('postal_code', '')
             street_address = value.get('street_address', '')
-            latitude = value.get('latitude')
-            longitude = value.get('longitude')
+            formatted = value.get('formatted', '')
+            latitude = value.get('latitude', '')
+            longitude = value.get('longitude', '')
 
             # Handle the country.
             try:
@@ -183,17 +187,26 @@ class AddressField(models.ForeignKey):
                 address_obj = Address.objects.get(
                     street_address=street_address,
                     locality=locality_obj,
+                    formatted=formatted,
+                    latitude=latitude,
+                    longitude=longitude,
                 )
             except Address.DoesNotExist:
                 address_obj = Address(
                     street_address=street_address,
                     locality=locality_obj,
+                    formatted=formatted,
                     latitude=latitude,
                     longitude=longitude,
                 )
 
             # Need to save here to help Django on it's way.
             self._do_save(address_obj)
+
+            # If "formatted" is empty try to construct it from other values.
+            if not address_obj.formatted:
+                address_obj.formatted = unicode(address_obj)
+                address_obj.save()
 
             # Done.
             return address_obj
@@ -266,17 +279,6 @@ def get_or_create_address(value, geo_accuracy=1):
 
             # Convert to a dictionary value.
             if name:
-
-
-
-
-
-
-
-
-
-
-
                 try:
                     value = to_address(name + ' near ' + address, geo_accuracy)
                 except GoogleMapsError, urllib2.HTTPError:
@@ -309,13 +311,14 @@ def get_or_create_address(value, geo_accuracy=1):
             locality = value.get('locality', '')
             postal_code = value.get('postal_code', '')
             street_address = value.get('street_address', '')
-            latitude = value.get('latitude')
-            longitude = value.get('longitude')
+            formatted = value.get('formatted', '')
+            latitude = value.get('latitude', '')
+            longitude = value.get('longitude', '')
 
             # If there is nothing here then just return None.
-            if not (country and country_code and state and state_code and
-                    locality and postal_code and street_address and
-                    latitude and longitude):
+            if not (country or country_code or state or state_code or
+                    locality or postal_code or street_address or
+                    latitude or longitude):
                 return None
 
             # Handle the country.
@@ -341,17 +344,26 @@ def get_or_create_address(value, geo_accuracy=1):
                 address_obj = Address.objects.get(
                     street_address=street_address,
                     locality=locality_obj,
+                    formatted=formatted,
+                    latitude=latitude,
+                    longitude=longitude,
                 )
             except Address.DoesNotExist:
                 address_obj = Address(
                     street_address=street_address,
                     locality=locality_obj,
+                    formatted=formatted,
                     latitude=latitude,
                     longitude=longitude,
                 )
 
             # Need to save here to help Django on it's way.
             do_save(address_obj)
+
+            # If "formatted" is empty try to construct it from other values.
+            if not address_obj.formatted:
+                address_obj.formatted = unicode(address_obj)
+                address_obj.save()
 
             # Done.
             return address_obj
