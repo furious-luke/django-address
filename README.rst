@@ -18,6 +18,18 @@ Uses Django 1.3, but needs to be patched using the supplied diff file,
 "django-1.3.diff". This fix has been submitted to the Django team, hopefully
 it will be included in the next release.
 
+django-address depends on a couple of other repositories I use to store small
+utilities:
+
+  python-utils
+    A suite of simple Python utilities.
+
+  django-utils
+    A suite of simple Django utilities.
+
+You will need to download and install both python-utils and django-utils from
+my github repositories.
+
 Beyond that, use the provided "setup.py".
 
 The Model
