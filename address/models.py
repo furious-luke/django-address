@@ -161,8 +161,8 @@ class AddressField(models.ForeignKey):
             postal_code = value.get('postal_code', '')
             street_address = value.get('street_address', '')
             formatted = value.get('formatted', '')
-            latitude = value.get('latitude', '')
-            longitude = value.get('longitude', '')
+            latitude = value.get('latitude', None)
+            longitude = value.get('longitude', None)
 
             # Handle the country.
             try:
