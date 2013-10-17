@@ -16,6 +16,7 @@ admin.site.register(models.State, StateAdmin)
 
 class LocalityAdmin(admin.ModelAdmin):
     search_fields = ('name', 'postal_code')
+    list_display = ('state', 'postal_code', 'name')
 
 admin.site.register(models.Locality, LocalityAdmin)
 
