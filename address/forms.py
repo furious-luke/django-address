@@ -1,9 +1,6 @@
-import urllib2
 from django import forms
 from uni_form.helpers import *
 from django.utils.safestring import mark_safe
-from djangoutils.conv import to_address
-from googlemaps import GoogleMapsError
 from models import get_or_create_address
 
 import logging

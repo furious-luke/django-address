@@ -12,6 +12,23 @@ __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField',
            'get_or_create_address']
 
 
+class NullCharField(models.CharField):
+    description = 'CharField that sets the value to null'
+    def to_python(self, value):
+        if isinstance(value, models.CharField):
+            return value
+        if value is None:
+            return ''
+        else:
+            return value
+
+    def get_prep_value(self, value):
+        if value == '':
+            return None
+        else:
+            return value
+
+
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
     code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
@@ -30,8 +47,8 @@ class State(models.Model):
     country = models.ForeignKey(Country, related_name='states')
 
     class Meta:
-        unique_together = ('name', 'country')
-        ordering = ('country', 'name')
+        unique_together = ('name', 'code', 'country')
+        ordering = ('country', 'code', 'name')
 
     def __unicode__(self):
         txt = u'%s'%(self.code or self.name)
@@ -43,18 +60,18 @@ class State(models.Model):
 
 
 class Locality(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    postal_code = models.CharField(max_length=10, blank=True)
+    name = NullCharField(max_length=165, blank=True, null=True)
+    postal_code = NullCharField(max_length=10, blank=True, null=True)
     state = models.ForeignKey(State, related_name='localities')
 
     class Meta:
         verbose_name_plural = 'Localities'
-        unique_together = ('name', 'state')
-        ordering = ('state', 'name')
+        unique_together = ('name', 'state', 'postal_code')
+        ordering = ('state', 'postal_code', 'name')
 
     def __unicode__(self):
-        txt = u'%s'%self.name
-        state = u'%s'%self.state
+        txt = u'%s' % self.name
+        state = u'%s' % self.state
         if txt and state:
             txt += u', '
         txt += state
@@ -172,13 +189,13 @@ class AddressField(models.ForeignKey):
 
             # Handle the state.
             try:
-                state_obj = State.objects.get(name=state, country=country_obj)
+                state_obj = State.objects.get(name=state, code=state_code, country=country_obj)
             except State.DoesNotExist:
                 state_obj = State(name=state, code=state_code, country=country_obj)
 
             # Handle the locality.
             try:
-                locality_obj = Locality.objects.get(name=locality, state=state_obj)
+                locality_obj = Locality.objects.get(name=locality, postal_code=postal_code, state=state_obj)
             except Locality.DoesNotExist:
                 locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
 
@@ -329,13 +346,13 @@ def get_or_create_address(value, geo_accuracy=1):
 
             # Handle the state.
             try:
-                state_obj = State.objects.get(name=state, country=country_obj)
+                state_obj = State.objects.get(name=state, code=state_code, country=country_obj)
             except State.DoesNotExist:
                 state_obj = State(name=state, code=state_code, country=country_obj)
 
             # Handle the locality.
             try:
-                locality_obj = Locality.objects.get(name=locality, state=state_obj)
+                locality_obj = Locality.objects.get(name=locality, postal_code=postal_code, state=state_obj)
             except Locality.DoesNotExist:
                 locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
 
@@ -377,5 +394,6 @@ def get_or_create_address(value, geo_accuracy=1):
 try:
     from south.modelsinspector import add_introspection_rules
     add_introspection_rules([], ['^address\.models\.AddressField'])
+    add_introspection_rules([], ['^address\.models\.NullCharField'])
 except:
     pass
