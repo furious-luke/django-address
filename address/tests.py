@@ -3,7 +3,6 @@ from django.db import IntegrityError
 from django.db.models import Model
 import models
 
-
 class CountryTestCase(TestCase):
 
     def setUp(self):
@@ -23,7 +22,6 @@ class CountryTestCase(TestCase):
 
     def test_unicode(self):
         self.assertEqual(unicode(self.au), u'Australia')
-
 
 class StateTestCase(TestCase):
 
@@ -55,7 +53,6 @@ class StateTestCase(TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.vic), u'Victoria, Australia')
         self.assertEqual(unicode(self.empty), u'Australia')
-
 
 class LocalityTestCase(TestCase):
 
@@ -95,7 +92,6 @@ class LocalityTestCase(TestCase):
         self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, 3000, Victoria, Australia')
         self.assertEqual(unicode(self.au_vic_ftz), u'Fitzroy, Victoria, Australia')
         self.assertEqual(unicode(self.au_vic_empty), u'Victoria, Australia')
-
 
 class AddressTestCase(TestCase):
 
@@ -142,7 +138,6 @@ class AddressTestCase(TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.ad1), u'1 Some Street, Melbourne, 3000, Victoria, Australia')
         self.assertEqual(unicode(self.ad_empty), u'Northcote, 3070, Victoria, Australia')
-
 
 class AddressFieldTestCase(TestCase):
 

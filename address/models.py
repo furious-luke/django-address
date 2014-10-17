@@ -7,10 +7,8 @@ from googlemaps import GoogleMapsError
 import logging
 logger = logging.getLogger(__name__)
 
-
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField',
            'get_or_create_address']
-
 
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
@@ -22,7 +20,6 @@ class Country(models.Model):
 
     def __unicode__(self):
         return u'%s'%(self.code or self.name)
-
 
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
@@ -40,7 +37,6 @@ class State(models.Model):
             txt += u', '
         txt += country
         return txt
-
 
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
@@ -60,29 +56,43 @@ class Locality(models.Model):
         txt += state
         return txt
 
-
+##
+## If `locality` is blank it indicates this address has not been
+## successfully parsed into components. It should be manually
+## looked up if needed. Until then use the formatted value.
+##
 class Address(models.Model):
-    street_address = models.CharField(max_length=100, blank=True)
-    locality = models.ForeignKey(Locality, related_name='addresses')
-    formatted = models.CharField(max_length=200, blank=True, null=True)
+    street_number = models.CharField(max_length=20, blank=True)
+    route = models.CharField(max_length=100, blank=True)
+    locality = models.ForeignKey(Locality, related_name='addresses', blank=True, null=True)
+    formatted = models.CharField(max_length=200, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Addresses'
-        ordering = ('locality', 'street_address')
+        ordering = ('locality', 'route', 'street_number')
 
     def __unicode__(self):
-        txt = u'%s'%self.street_address
-        locality = u'%s'%self.locality
-        if txt and locality:
-            txt += u', '
-        txt += locality
+        if self.locality:
+            txt = u''
+            if self.street_number:
+                txt = u'%s'%self.street_number
+            if self.route:
+                if txt:
+                    txt += u' %s'%self.route
+            locality = u'%s'%self.locality
+            if txt and locality:
+                txt += u', '
+            txt += locality
+        else:
+            txt = u'%s'%self.formatted
         return txt
 
     def as_dict(self):
         return dict(
-            street_address=self.street_address,
+            street_number=self.street_number,
+            route=self.route,
             locality=self.locality.name,
             postal_code=self.locality.postal_code,
             state=self.locality.state.name,
@@ -93,7 +103,6 @@ class Address(models.Model):
             latitude=self.latitude,
             longitude=self.longitude,
         )
-
 
 class AddressField(models.ForeignKey):
     __metaclass__ = models.SubfieldBase
@@ -159,7 +168,8 @@ class AddressField(models.ForeignKey):
             state_code = value.get('state_code', '')
             locality = value.get('locality', '')
             postal_code = value.get('postal_code', '')
-            street_address = value.get('street_address', '')
+            street_number = value.get('street_number', '')
+            route = value.get('route', '')
             formatted = value.get('formatted', '')
             latitude = value.get('latitude', None)
             longitude = value.get('longitude', None)
@@ -185,7 +195,8 @@ class AddressField(models.ForeignKey):
             # Handle the address.
             try:
                 address_obj = Address.objects.get(
-                    street_address=street_address,
+                    street_number=street_number,
+                    route=street_route,
                     locality=locality_obj,
                     formatted=formatted,
                     latitude=latitude,
@@ -193,7 +204,8 @@ class AddressField(models.ForeignKey):
                 )
             except Address.DoesNotExist:
                 address_obj = Address(
-                    street_address=street_address,
+                    street_number=street_number,
+                    route=street_route,
                     locality=locality_obj,
                     formatted=formatted,
                     latitude=latitude,
@@ -222,7 +234,7 @@ class AddressField(models.ForeignKey):
         from forms import AddressField as AddressFormField
         defaults = dict(form_class=AddressFormField)
         defaults.update(kwargs)
-        return super(models.ForeignKey, self).formfield(**defaults)
+        return super(AddressField, self).formfield(**defaults)
 
     def value_from_object(self, obj):
         value = getattr(obj, self.name)
@@ -240,7 +252,6 @@ class AddressField(models.ForeignKey):
         address.save()
         return address.pk
 
-
 def do_save(address):
     if address is None:
         return address
@@ -252,7 +263,6 @@ def do_save(address):
     address.locality_id = address.locality.pk
     address.save()
     return address.pk
-
 
 def get_or_create_address(value, geo_accuracy=1):
     def str_to_dict(value):
@@ -310,14 +320,15 @@ def get_or_create_address(value, geo_accuracy=1):
             state_code = value.get('state_code', '')
             locality = value.get('locality', '')
             postal_code = value.get('postal_code', '')
-            street_address = value.get('street_address', '')
+            street_number = value.get('street_number', '')
+            route = value.get('route', '')
             formatted = value.get('formatted', '')
             latitude = value.get('latitude', '')
             longitude = value.get('longitude', '')
 
             # If there is nothing here then just return None.
             if not (country or country_code or state or state_code or
-                    locality or postal_code or street_address or
+                    locality or postal_code or street_number or route or
                     latitude or longitude):
                 return None
 
@@ -342,7 +353,8 @@ def get_or_create_address(value, geo_accuracy=1):
             # Handle the address.
             try:
                 address_obj = Address.objects.get(
-                    street_address=street_address,
+                    street_number=street_number,
+                    route=route,
                     locality=locality_obj,
                     formatted=formatted,
                     latitude=latitude,
@@ -350,7 +362,8 @@ def get_or_create_address(value, geo_accuracy=1):
                 )
             except Address.DoesNotExist:
                 address_obj = Address(
-                    street_address=street_address,
+                    street_number=street_number,
+                    route=route,
                     locality=locality_obj,
                     formatted=formatted,
                     latitude=latitude,
@@ -372,7 +385,6 @@ def get_or_create_address(value, geo_accuracy=1):
         raise ValidationError('Invalid locality value')
 
     return to_python(value)
-
 
 try:
     from south.modelsinspector import add_introspection_rules
