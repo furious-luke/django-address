@@ -10,248 +10,10 @@ logger = logging.getLogger(__name__)
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField',
            'get_or_create_address']
 
-class Country(models.Model):
-    name = models.CharField(max_length=40, unique=True, blank=True)
-    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
-
-    class Meta:
-        verbose_name_plural = 'Countries'
-        ordering = ('name',)
-
-    def __unicode__(self):
-        return u'%s'%(self.code or self.name)
-
-class State(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    code = models.CharField(max_length=3, blank=True)
-    country = models.ForeignKey(Country, related_name='states')
-
-    class Meta:
-        unique_together = ('name', 'country')
-        ordering = ('country', 'name')
-
-    def __unicode__(self):
-        txt = u'%s'%(self.code or self.name)
-        country = u'%s'%self.country
-        if country and txt:
-            txt += u', '
-        txt += country
-        return txt
-
-class Locality(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    postal_code = models.CharField(max_length=10, blank=True)
-    state = models.ForeignKey(State, related_name='localities')
-
-    class Meta:
-        verbose_name_plural = 'Localities'
-        unique_together = ('name', 'state')
-        ordering = ('state', 'name')
-
-    def __unicode__(self):
-        txt = u'%s'%self.name
-        state = u'%s'%self.state
-        if txt and state:
-            txt += u', '
-        txt += state
-        return txt
-
 ##
-## If `locality` is blank it indicates this address has not been
-## successfully parsed into components. It should be manually
-## looked up if needed. Until then use the formatted value.
+## Save an address. Make sure each component is saved in addition
+## to the outer most `Address` object.
 ##
-class Address(models.Model):
-    street_number = models.CharField(max_length=20, blank=True)
-    route = models.CharField(max_length=100, blank=True)
-    locality = models.ForeignKey(Locality, related_name='addresses', blank=True, null=True)
-    formatted = models.CharField(max_length=200, blank=True)
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
-
-    class Meta:
-        verbose_name_plural = 'Addresses'
-        ordering = ('locality', 'route', 'street_number')
-
-    def __unicode__(self):
-        if self.locality:
-            txt = u''
-            if self.street_number:
-                txt = u'%s'%self.street_number
-            if self.route:
-                if txt:
-                    txt += u' %s'%self.route
-            locality = u'%s'%self.locality
-            if txt and locality:
-                txt += u', '
-            txt += locality
-        else:
-            txt = u'%s'%self.formatted
-        return txt
-
-    def as_dict(self):
-        return dict(
-            street_number=self.street_number,
-            route=self.route,
-            locality=self.locality.name,
-            postal_code=self.locality.postal_code,
-            state=self.locality.state.name,
-            state_code=self.locality.state.code,
-            country=self.locality.state.country.name,
-            country_code=self.locality.state.country.code,
-            formatted=self.formatted,
-            latitude=self.latitude,
-            longitude=self.longitude,
-        )
-
-class AddressField(models.ForeignKey):
-    __metaclass__ = models.SubfieldBase
-    description = 'An address'
-
-    def __init__(self, **kwargs):
-        kwargs.pop('to', None)
-        self._geo_accuracy = kwargs.pop('geo_accuracy', 1)
-        super(AddressField, self).__init__(Address, **kwargs)
-
-    def str_to_dict(self, value):
-        if value is None:
-            return None
-
-        # Check for a string not conforming to the serialised format.
-        if isinstance(value, basestring):
-            # TODO: Check for serialised version.
-            # Convert to a tuple for the next part.
-            value = (value,)
-
-        # Check if we have a tuple first, because we will convert it to a dictionary
-        # and let the dictionary handler deal with it.
-        if isinstance(value, tuple) and len(value) >= 1:
-
-            # Extract our name and address.
-            if len(value) >= 2:
-                name = value[0]
-                address = value[1]
-            else:
-                name = None
-                address = value[0]
-
-            # Convert to a dictionary value.
-            if name:
-                try:
-                    value = to_address(name + ' near ' + address, self._geo_accuracy)
-                except GoogleMapsError, urllib2.HTTPError:
-                    name = None
-            if not name:
-                value = to_address(address, self._geo_accuracy)
-
-        return value
-
-    def to_python(self, value):
-        value = self.str_to_dict(value)
-        if value is None:
-            return None
-
-        # Is it already an address object?
-        if isinstance(value, Address):
-            return value
-
-        # If we have an integer, assume it is a model primary key. This is mostly for
-        # Django being a cunt.
-        elif isinstance(value, (int, long)):
-            return value
-
-        # A dictionary of named address components.
-        elif isinstance(value, dict):
-            country = value.get('country', '')
-            country_code = value.get('country_code', '')
-            state = value.get('state', '')
-            state_code = value.get('state_code', '')
-            locality = value.get('locality', '')
-            postal_code = value.get('postal_code', '')
-            street_number = value.get('street_number', '')
-            route = value.get('route', '')
-            formatted = value.get('formatted', '')
-            latitude = value.get('latitude', None)
-            longitude = value.get('longitude', None)
-
-            # Handle the country.
-            try:
-                country_obj = Country.objects.get(name=country)
-            except Country.DoesNotExist:
-                country_obj = Country(name=country, code=country_code)
-
-            # Handle the state.
-            try:
-                state_obj = State.objects.get(name=state, country=country_obj)
-            except State.DoesNotExist:
-                state_obj = State(name=state, code=state_code, country=country_obj)
-
-            # Handle the locality.
-            try:
-                locality_obj = Locality.objects.get(name=locality, state=state_obj)
-            except Locality.DoesNotExist:
-                locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
-
-            # Handle the address.
-            try:
-                address_obj = Address.objects.get(
-                    street_number=street_number,
-                    route=street_route,
-                    locality=locality_obj,
-                    formatted=formatted,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
-            except Address.DoesNotExist:
-                address_obj = Address(
-                    street_number=street_number,
-                    route=street_route,
-                    locality=locality_obj,
-                    formatted=formatted,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
-
-            # Need to save here to help Django on it's way.
-            self._do_save(address_obj)
-
-            # If "formatted" is empty try to construct it from other values.
-            if not address_obj.formatted:
-                address_obj.formatted = unicode(address_obj)
-                address_obj.save()
-
-            # Done.
-            return address_obj
-
-        # Try to deserialise a string ... how?
-        raise ValidationError('Invalid locality value')
-
-    def pre_save(self, model_instance, add):
-        address = getattr(model_instance, self.name)
-        return self._do_save(address)
-
-    def formfield(self, **kwargs):
-        from forms import AddressField as AddressFormField
-        defaults = dict(form_class=AddressFormField)
-        defaults.update(kwargs)
-        return super(AddressField, self).formfield(**defaults)
-
-    def value_from_object(self, obj):
-        value = getattr(obj, self.name)
-        return value
-
-    def _do_save(self, address):
-        if address is None:
-            return address
-        address.locality.state.country.save()
-        address.locality.state.country_id = address.locality.state.country.pk
-        address.locality.state.save()
-        address.locality.state_id = address.locality.state.pk
-        address.locality.save()
-        address.locality_id = address.locality.pk
-        address.save()
-        return address.pk
-
 def do_save(address):
     if address is None:
         return address
@@ -264,127 +26,242 @@ def do_save(address):
     address.save()
     return address.pk
 
-def get_or_create_address(value, geo_accuracy=1):
-    def str_to_dict(value):
-        if value is None:
-            return None
+##
+## Convert a dictionary to an address.
+##
+def to_python(value):
 
-        # Check for a string not conforming to the serialised format.
-        if isinstance(value, basestring):
-            # TODO: Check for serialised version.
-            # Convert to a tuple for the next part.
-            value = (value,)
+    # Keep `None`s.
+    if value is None:
+        return None
 
-        # Check if we have a tuple first, because we will convert it to a dictionary
-        # and let the dictionary handler deal with it.
-        if isinstance(value, tuple) and len(value) >= 1:
-
-            # Extract our name and address.
-            if len(value) >= 2:
-                name = value[0]
-                address = value[1]
-            else:
-                name = None
-                address = value[0]
-
-            # Convert to a dictionary value.
-            if name:
-                try:
-                    value = to_address(name + ' near ' + address, geo_accuracy)
-                except GoogleMapsError, urllib2.HTTPError:
-                    name = None
-            if not name:
-                value = to_address(address, geo_accuracy)
-
+    # Is it already an address object?
+    if isinstance(value, Address):
         return value
 
-    def to_python(value):
-        value = str_to_dict(value)
-        if value is None:
-            return None
+    # If we have an integer, assume it is a model primary key. This is mostly for
+    # Django being a cunt.
+    elif isinstance(value, (int, long)):
+        return value
 
-        # Is it already an address object?
-        if isinstance(value, Address):
-            return value
+    # A dictionary of named address components.
+    elif isinstance(value, dict):
+        raw = value.get('raw', '')
+        country = value.get('country', '')
+        country_code = value.get('country_code', '')
+        state = value.get('state', '')
+        state_code = value.get('state_code', '')
+        locality = value.get('locality', '')
+        postal_code = value.get('postal_code', '')
+        street_number = value.get('street_number', '')
+        route = value.get('route', '')
+        formatted = value.get('formatted', '')
+        latitude = value.get('latitude', None)
+        longitude = value.get('longitude', None)
 
-        # If we have an integer, assume it is a model primary key. This is mostly for
-        # Django being a cunt.
-        elif isinstance(value, (int, long)):
-            return value
+        # Handle the country.
+        try:
+            country_obj = Country.objects.get(name=country)
+        except Country.DoesNotExist:
+            country_obj = Country(name=country, code=country_code)
 
-        # A dictionary of named address components.
-        elif isinstance(value, dict):
-            country = value.get('country', '')
-            country_code = value.get('country_code', '')
-            state = value.get('state', '')
-            state_code = value.get('state_code', '')
-            locality = value.get('locality', '')
-            postal_code = value.get('postal_code', '')
-            street_number = value.get('street_number', '')
-            route = value.get('route', '')
-            formatted = value.get('formatted', '')
-            latitude = value.get('latitude', '')
-            longitude = value.get('longitude', '')
+        # Handle the state.
+        try:
+            state_obj = State.objects.get(name=state, country=country_obj)
+        except State.DoesNotExist:
+            state_obj = State(name=state, code=state_code, country=country_obj)
 
-            # If there is nothing here then just return None.
-            if not (country or country_code or state or state_code or
-                    locality or postal_code or street_number or route or
-                    latitude or longitude):
-                return None
+        # Handle the locality.
+        try:
+            locality_obj = Locality.objects.get(name=locality, state=state_obj)
+        except Locality.DoesNotExist:
+            locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
 
-            # Handle the country.
-            try:
-                country_obj = Country.objects.get(name=country)
-            except Country.DoesNotExist:
-                country_obj = Country(name=country, code=country_code)
-
-            # Handle the state.
-            try:
-                state_obj = State.objects.get(name=state, country=country_obj)
-            except State.DoesNotExist:
-                state_obj = State(name=state, code=state_code, country=country_obj)
-
-            # Handle the locality.
-            try:
-                locality_obj = Locality.objects.get(name=locality, state=state_obj)
-            except Locality.DoesNotExist:
-                locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
-
-            # Handle the address.
-            try:
-                address_obj = Address.objects.get(
-                    street_number=street_number,
-                    route=route,
-                    locality=locality_obj,
-                    formatted=formatted,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
-            except Address.DoesNotExist:
-                address_obj = Address(
-                    street_number=street_number,
-                    route=route,
-                    locality=locality_obj,
-                    formatted=formatted,
-                    latitude=latitude,
-                    longitude=longitude,
-                )
-
-            # Need to save here to help Django on it's way.
-            do_save(address_obj)
+        # Handle the address.
+        try:
+            address_obj = Address.objects.get(
+                street_number=street_number,
+                route=route,
+                locality=locality_obj,
+                formatted=formatted,
+                latitude=latitude,
+                longitude=longitude,
+            )
+        except Address.DoesNotExist:
+            address_obj = Address(
+                street_number=street_number,
+                route=route,
+                raw=raw,
+                locality=locality_obj,
+                formatted=formatted,
+                latitude=latitude,
+                longitude=longitude,
+            )
 
             # If "formatted" is empty try to construct it from other values.
             if not address_obj.formatted:
                 address_obj.formatted = unicode(address_obj)
-                address_obj.save()
 
-            # Done.
-            return address_obj
+        # Done.
+        return address_obj
 
-        # Try to deserialise a string ... how?
-        raise ValidationError('Invalid locality value')
+    # Not in any of the formats I recognise.
+    raise ValidationError('Invalid address value.')
 
-    return to_python(value)
+##
+## A country.
+##
+class Country(models.Model):
+    name = models.CharField(max_length=40, unique=True, blank=True)
+    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
+
+    class Meta:
+        verbose_name_plural = 'Countries'
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return u'%s'%(self.name or self.code)
+
+##
+## A state. Google refers to this as `administration_level_1`.
+##
+class State(models.Model):
+    name = models.CharField(max_length=165, blank=True)
+    code = models.CharField(max_length=3, blank=True)
+    country = models.ForeignKey(Country, related_name='states')
+
+    class Meta:
+        unique_together = ('name', 'country')
+        ordering = ('country', 'name')
+
+    def __unicode__(self):
+        txt = self.to_str()
+        country = u'%s'%self.country
+        if country and txt:
+            txt += u', '
+        txt += country
+        return txt
+
+    def to_str(self):
+        return u'%s'%(self.name or self.code)
+
+##
+## A locality (suburb).
+##
+class Locality(models.Model):
+    name = models.CharField(max_length=165, blank=True)
+    postal_code = models.CharField(max_length=10, blank=True)
+    state = models.ForeignKey(State, related_name='localities')
+
+    class Meta:
+        verbose_name_plural = 'Localities'
+        unique_together = ('name', 'state')
+        ordering = ('state', 'name')
+
+    def __unicode__(self):
+        txt = u'%s'%self.name
+        state = self.state.to_str() if self.state else ''
+        if txt and state:
+            txt += u', '
+        txt += state
+        if self.postal_code:
+            txt += u' %s'%self.postal_code
+        cntry = u'%s'%(self.state.country if self.state and self.state.country else '')
+        if cntry:
+            txt += u', %s'%cntry
+        return txt
+
+##
+## An address. If for any reason we are unable to find a matching
+## decomposed address we will store the raw address string in `raw`.
+##
+class Address(models.Model):
+    street_number = models.CharField(max_length=20, blank=True)
+    route = models.CharField(max_length=100, blank=True)
+    locality = models.ForeignKey(Locality, related_name='addresses', blank=True, null=True)
+    raw = models.CharField(max_length=200)
+    formatted = models.CharField(max_length=200, blank=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = 'Addresses'
+        ordering = ('locality', 'route', 'street_number')
+        unique_together = ('locality', 'route', 'street_number')
+
+    def __unicode__(self):
+        if self.formatted != '':
+            txt = u'%s'%self.formatted
+        elif self.locality:
+            txt = u''
+            if self.street_number:
+                txt = u'%s'%self.street_number
+            if self.route:
+                if txt:
+                    txt += u' %s'%self.route
+            locality = u'%s'%self.locality
+            if txt and locality:
+                txt += u', '
+            txt += locality
+        else:
+            txt = u'%s'%self.raw
+        return txt
+
+    def clean(self):
+        if not self.raw:
+            raise ValidationError('Addresses may not have a blank `raw` field.')
+
+    def as_dict(self):
+        return dict(
+            street_number=self.street_number,
+            route=self.route,
+            locality=self.locality.name,
+            postal_code=self.locality.postal_code,
+            state=self.locality.state.name,
+            state_code=self.locality.state.code,
+            country=self.locality.state.country.name,
+            country_code=self.locality.state.country.code,
+            raw=self.raw,
+            formatted=self.formatted,
+            latitude=self.latitude,
+            longitude=self.longitude,
+        )
+
+##
+## A field for addresses in other models.
+##
+class AddressField(models.ForeignKey):
+    __metaclass__ = models.SubfieldBase
+    description = 'An address'
+
+    def __init__(self, **kwargs):
+        kwargs.pop('to', None)
+        super(AddressField, self).__init__(Address, **kwargs)
+
+    def to_python(self, value):
+        return to_python(value)
+
+    def pre_save(self, inst, add):
+        address = getattr(inst, self.name)
+        return do_save(address)
+
+    def formfield(self, **kwargs):
+        from forms import AddressField as AddressFormField
+        defaults = dict(form_class=AddressFormField)
+        defaults.update(kwargs)
+        return super(AddressField, self).formfield(**defaults)
+
+    def value_from_object(self, obj):
+        value = getattr(obj, self.name)
+        return value
+
+##
+## A helper to find an existing address or create a new one.
+##
+def get_or_create_address(value):
+    obj = to_python(value)
+    do_save(obj)
+    return obj
 
 try:
     from south.modelsinspector import add_introspection_rules

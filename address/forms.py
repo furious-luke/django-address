@@ -4,7 +4,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from djangoutils.conv import to_address
 from googlemaps import GoogleMapsError
-from models import get_or_create_address
+from models import get_or_create_address, Address
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,6 +30,9 @@ class AddressWidget(forms.TextInput):
             ad = {}
         elif isinstance(value, dict):
             ad = value
+        elif isinstance(value, (int, long)):
+            ad = Address.objects.get(pk=value)
+            ad = ad.as_dict()
         else:
             ad = value.as_dict()
 
@@ -50,16 +53,12 @@ class AddressWidget(forms.TextInput):
 
     def value_from_datadict(self, data, files, name):
         ad = dict([(c[0], data.get(name + '_' + c[0], '')) for c in self.components])
+        ad['raw'] = data.get(name, '')
         return ad
 
 
-class AddressField(forms.CharField):
+class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
-
-    def __init__(self, **kwargs):
-        for f in ['limit_choices_to', 'queryset', 'to_field_name']:
-            kwargs.pop(f, None)
-        super(AddressField, self).__init__(**kwargs)
 
     def to_python(self, value):
 
@@ -68,46 +67,3 @@ class AddressField(forms.CharField):
             return None
 
         return get_or_create_address(value)
-
-# def make_helper(form, primary_buttons, secondary_buttons=[]):
-#     helper = FormHelper()
-
-#     all_fieldset = Fieldset('', *[f.name for f in form.visible_fields()])
-
-#     buttons = []
-#     for name, text in primary_buttons:
-#         btn = Submit(name, text, css_class='primaryAction')
-#         # helper.add_input(btn)
-#         buttons.append(btn)
-#     for name, text in secondary_buttons:
-#         btn = Submit(name, text, css_class='secondaryAction')
-#         # helper.add_input(btn)
-#         buttons.append(btn)
-#     button_holder = ButtonHolder(*buttons)
-
-#     layout = Layout(all_fieldset, button_holder)
-
-# #    helper.form_action = ''
-#     helper.form_method = 'POST'
-#     helper.form_style = 'inline'
-#     helper.add_layout(layout)
-#     return helper
-
-
-# class UniFormMedia(object):
-
-#     class Media:
-#         css = {'all': ('uni_form/uni-form.css', 'uni_form/default.uni-form.css')}
-#         js = ('js/jquery.min.js', 'uni_form/uni-form.jquery.js')
-
-
-# class TestForm(forms.Form, UniFormMedia):
-#     address_full = AddressField()
-#     address_no_postal_code = AddressField(widget=AddressWidget(use_postal_code=False))
-#     address_no_lat_lng = AddressField(widget=AddressWidget(use_lat_lng=False))
-#     address_no_codes = AddressField(widget=AddressWidget(use_codes=False))
-#     address_minimal = AddressField(widget=AddressWidget(use_postal_code=False, use_lat_lng=False, use_codes=False))
-
-#     @property
-#     def helper(self):
-#         return make_helper(self, (('okay', 'Okay'),), (('cancel', 'Cancel'),))

@@ -1,24 +1,25 @@
 from django.test import TestCase
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from django.db.models import Model
-import models
+from .models import *
 
 class CountryTestCase(TestCase):
 
     def setUp(self):
-        self.au = models.Country.objects.create(name='Australia', code='AU')
-        self.nz = models.Country.objects.create(name='New Zealand', code='NZ')
-        self.be = models.Country.objects.create(name='Belgium', code='BE')
+        self.au = Country.objects.create(name='Australia', code='AU')
+        self.nz = Country.objects.create(name='New Zealand', code='NZ')
+        self.be = Country.objects.create(name='Belgium', code='BE')
 
     def test_ordering(self):
-        qs = models.Country.objects.all()
+        qs = Country.objects.all()
         self.assertEqual(qs.count(), 3)
         self.assertEqual(qs[0].code, 'AU')
         self.assertEqual(qs[1].code, 'BE')
         self.assertEqual(qs[2].code, 'NZ')
 
     def test_unique_name(self):
-        self.assertRaises(IntegrityError, models.Country.objects.create, name='Australia', code='**')
+        self.assertRaises(IntegrityError, Country.objects.create, name='Australia', code='**')
 
     def test_unicode(self):
         self.assertEqual(unicode(self.au), u'Australia')
@@ -26,19 +27,19 @@ class CountryTestCase(TestCase):
 class StateTestCase(TestCase):
 
     def setUp(self):
-        self.au = models.Country.objects.create(name='Australia', code='AU')
-        self.vic = models.State.objects.create(name='Victoria', code='VIC', country=self.au)
-        self.tas = models.State.objects.create(name='Tasmania', code='TAS', country=self.au)
-        self.qld = models.State.objects.create(name='Queensland', country=self.au)
-        self.empty = models.State.objects.create(country=self.au)
-        self.uk = models.Country.objects.create(name='United Kingdom', code='UK')
-        self.uk_vic = models.State.objects.create(name='Victoria', code='VIC', country=self.uk)
+        self.au = Country.objects.create(name='Australia', code='AU')
+        self.vic = State.objects.create(name='Victoria', code='VIC', country=self.au)
+        self.tas = State.objects.create(name='Tasmania', code='TAS', country=self.au)
+        self.qld = State.objects.create(name='Queensland', country=self.au)
+        self.empty = State.objects.create(country=self.au)
+        self.uk = Country.objects.create(name='United Kingdom', code='UK')
+        self.uk_vic = State.objects.create(name='Victoria', code='VIC', country=self.uk)
 
     def test_required_country(self):
-        self.assertRaises(IntegrityError, models.State.objects.create)
+        self.assertRaises(IntegrityError, State.objects.create)
 
     def test_ordering(self):
-        qs = models.State.objects.all()
+        qs = State.objects.all()
         self.assertEqual(qs.count(), 5)
         self.assertEqual(qs[0].name, '')
         self.assertEqual(qs[1].name, 'Queensland')
@@ -47,8 +48,8 @@ class StateTestCase(TestCase):
         self.assertEqual(qs[4].name, 'Victoria')
 
     def test_unique_name_country(self):
-        models.State.objects.create(name='Tasmania', country=self.uk)
-        self.assertRaises(IntegrityError, models.State.objects.create, name='Tasmania', country=self.au)
+        State.objects.create(name='Tasmania', country=self.uk)
+        self.assertRaises(IntegrityError, State.objects.create, name='Tasmania', country=self.au)
 
     def test_unicode(self):
         self.assertEqual(unicode(self.vic), u'Victoria, Australia')
@@ -57,26 +58,26 @@ class StateTestCase(TestCase):
 class LocalityTestCase(TestCase):
 
     def setUp(self):
-        self.au = models.Country.objects.create(name='Australia', code='AU')
-        self.uk = models.Country.objects.create(name='United Kingdom', code='UK')
+        self.au = Country.objects.create(name='Australia', code='AU')
+        self.uk = Country.objects.create(name='United Kingdom', code='UK')
 
-        self.au_vic = models.State.objects.create(name='Victoria', code='VIC', country=self.au)
-        self.au_tas = models.State.objects.create(name='Tasmania', code='TAS', country=self.au)
-        self.au_qld = models.State.objects.create(name='Queensland', country=self.au)
-        self.au_empty = models.State.objects.create(country=self.au)
-        self.uk_vic = models.State.objects.create(name='Victoria', code='VIC', country=self.uk)
+        self.au_vic = State.objects.create(name='Victoria', code='VIC', country=self.au)
+        self.au_tas = State.objects.create(name='Tasmania', code='TAS', country=self.au)
+        self.au_qld = State.objects.create(name='Queensland', country=self.au)
+        self.au_empty = State.objects.create(country=self.au)
+        self.uk_vic = State.objects.create(name='Victoria', code='VIC', country=self.uk)
 
-        self.au_vic_nco = models.Locality.objects.create(name='Northcote', postal_code='3070', state=self.au_vic)
-        self.au_vic_mel = models.Locality.objects.create(name='Melbourne', postal_code='3000', state=self.au_vic)
-        self.au_vic_ftz = models.Locality.objects.create(name='Fitzroy', state=self.au_vic)
-        self.au_vic_empty = models.Locality.objects.create(state=self.au_vic)
-        self.uk_vic_mel = models.Locality.objects.create(name='Melbourne', postal_code='3000', state=self.uk_vic)
+        self.au_vic_nco = Locality.objects.create(name='Northcote', postal_code='3070', state=self.au_vic)
+        self.au_vic_mel = Locality.objects.create(name='Melbourne', postal_code='3000', state=self.au_vic)
+        self.au_vic_ftz = Locality.objects.create(name='Fitzroy', state=self.au_vic)
+        self.au_vic_empty = Locality.objects.create(state=self.au_vic)
+        self.uk_vic_mel = Locality.objects.create(name='Melbourne', postal_code='3000', state=self.uk_vic)
 
     def test_required_state(self):
-        self.assertRaises(IntegrityError, models.Locality.objects.create)
+        self.assertRaises(IntegrityError, Locality.objects.create)
 
     def test_ordering(self):
-        qs = models.Locality.objects.all()
+        qs = Locality.objects.all()
         self.assertEqual(qs.count(), 5)
         self.assertEqual(qs[0].name, '')
         self.assertEqual(qs[1].name, 'Fitzroy')
@@ -85,68 +86,73 @@ class LocalityTestCase(TestCase):
         self.assertEqual(qs[4].name, 'Melbourne')
 
     def test_unique_name_state(self):
-        models.Locality.objects.create(name='Melbourne', state=self.au_qld)
-        self.assertRaises(IntegrityError, models.Locality.objects.create, name='Melbourne', state=self.au_vic)
+        Locality.objects.create(name='Melbourne', state=self.au_qld)
+        self.assertRaises(IntegrityError, Locality.objects.create, name='Melbourne', state=self.au_vic)
 
     def test_unicode(self):
-        self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, 3000, Victoria, Australia')
+        self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, Victoria 3000, Australia')
         self.assertEqual(unicode(self.au_vic_ftz), u'Fitzroy, Victoria, Australia')
         self.assertEqual(unicode(self.au_vic_empty), u'Victoria, Australia')
 
 class AddressTestCase(TestCase):
 
     def setUp(self):
-        self.au = models.Country.objects.create(name='Australia', code='AU')
-        self.uk = models.Country.objects.create(name='United Kingdom', code='UK')
+        self.au = Country.objects.create(name='Australia', code='AU')
+        self.uk = Country.objects.create(name='United Kingdom', code='UK')
 
-        self.au_vic = models.State.objects.create(name='Victoria', code='VIC', country=self.au)
-        self.au_tas = models.State.objects.create(name='Tasmania', code='TAS', country=self.au)
-        self.au_qld = models.State.objects.create(name='Queensland', country=self.au)
-        self.au_empty = models.State.objects.create(country=self.au)
-        self.uk_vic = models.State.objects.create(name='Victoria', code='VIC', country=self.uk)
+        self.au_vic = State.objects.create(name='Victoria', code='VIC', country=self.au)
+        self.au_tas = State.objects.create(name='Tasmania', code='TAS', country=self.au)
+        self.au_qld = State.objects.create(name='Queensland', country=self.au)
+        self.au_empty = State.objects.create(country=self.au)
+        self.uk_vic = State.objects.create(name='Victoria', code='VIC', country=self.uk)
 
-        self.au_vic_nco = models.Locality.objects.create(name='Northcote', postal_code='3070', state=self.au_vic)
-        self.au_vic_mel = models.Locality.objects.create(name='Melbourne', postal_code='3000', state=self.au_vic)
-        self.au_vic_ftz = models.Locality.objects.create(name='Fitzroy', state=self.au_vic)
-        self.au_vic_empty = models.Locality.objects.create(state=self.au_vic)
-        self.uk_vic_mel = models.Locality.objects.create(name='Melbourne', postal_code='3000', state=self.uk_vic)
+        self.au_vic_nco = Locality.objects.create(name='Northcote', postal_code='3070', state=self.au_vic)
+        self.au_vic_mel = Locality.objects.create(name='Melbourne', postal_code='3000', state=self.au_vic)
+        self.au_vic_ftz = Locality.objects.create(name='Fitzroy', state=self.au_vic)
+        self.au_vic_empty = Locality.objects.create(state=self.au_vic)
+        self.uk_vic_mel = Locality.objects.create(name='Melbourne', postal_code='3000', state=self.uk_vic)
 
-        self.ad1 = models.Address.objects.create(street_address='1 Some Street', locality=self.au_vic_mel)
-        self.ad2 = models.Address.objects.create(street_address='10 Other Street', locality=self.au_vic_mel)
-        self.ad3 = models.Address.objects.create(street_address='1 Some Street', locality=self.au_vic_nco)
-        self.ad_empty = models.Address.objects.create(locality=self.au_vic_nco)
+        self.ad1 = Address.objects.create(street_number='1', route='Some Street', locality=self.au_vic_mel,
+                                          raw='1 Some Street, Victoria, Melbourne')
+        self.ad2 = Address.objects.create(street_number='10', route='Other Street', locality=self.au_vic_mel,
+                                          raw='10 Other Street, Victoria, Melbourne')
+        self.ad3 = Address.objects.create(street_number='1', route='Some Street', locality=self.au_vic_nco,
+                                          raw='1 Some Street, Northcote, Victoria')
+        self.ad_empty = Address.objects.create(locality=self.au_vic_nco, raw='Northcote, Victoria')
 
-    def test_required_locality(self):
-        self.assertRaises(IntegrityError, models.Address.objects.create)
+    def test_required_raw(self):
+        obj = Address.objects.create()
+        self.assertRaises(ValidationError, obj.clean)
 
     def test_ordering(self):
-        qs = models.Address.objects.all()
+        qs = Address.objects.all()
         self.assertEqual(qs.count(), 4)
-        self.assertEqual(qs[0].street_address, '1 Some Street')
-        self.assertEqual(qs[1].street_address, '10 Other Street')
-        self.assertEqual(qs[2].street_address, '')
-        self.assertEqual(qs[3].street_address, '1 Some Street')
-
+        self.assertEqual(qs[0].route, 'Other Street')
+        self.assertEqual(qs[1].route, 'Some Street')
+        self.assertEqual(qs[2].route, '')
+        self.assertEqual(qs[3].route, 'Some Street')
 
     def test_unique_street_address_locality(self):
-        models.Address.objects.create(street_address='10 Other Street', locality=self.au_vic_nco)
+        Address.objects.create(street_number='10', route='Other Street', locality=self.au_vic_nco)
         self.assertRaises(
-            IntegrityError, models.Address.objects.create,
-            street_address='10 Other Street', locality=self.au_vic_mel
+            IntegrityError, Address.objects.create,
+            street_number='10', route='Other Street', locality=self.au_vic_mel
         )
 
     def test_unicode(self):
-        self.assertEqual(unicode(self.ad1), u'1 Some Street, Melbourne, 3000, Victoria, Australia')
-        self.assertEqual(unicode(self.ad_empty), u'Northcote, 3070, Victoria, Australia')
+        self.assertEqual(unicode(self.ad1), u'1 Some Street, Melbourne, Victoria 3000, Australia')
+        self.assertEqual(unicode(self.ad_empty), u'Northcote, Victoria 3070, Australia')
 
 class AddressFieldTestCase(TestCase):
 
     class TestModel(Model):
-        address = models.AddressField()
+        address = AddressField()
 
     def setUp(self):
         self.ad1_dict = {
-            'street_address': '1 Somewhere Street',
+            'raw': '1 Somewhere Street, Northcote, Victoria 3070, VIC, AU',
+            'street_number': '1',
+            'route': 'Somewhere Street',
             'locality': 'Northcote',
             'postal_code': '3070',
             'state': 'Victoria',
@@ -158,7 +164,9 @@ class AddressFieldTestCase(TestCase):
 
     def test_assignment_from_dict(self):
         self.test.address = self.ad1_dict
-        self.assertEqual(self.test.address.street_address, self.ad1_dict['street_address'])
+        self.assertEqual(self.test.address.raw, self.ad1_dict['raw'])
+        self.assertEqual(self.test.address.street_number, self.ad1_dict['street_number'])
+        self.assertEqual(self.test.address.route, self.ad1_dict['route'])
         self.assertEqual(self.test.address.locality.name, self.ad1_dict['locality'])
         self.assertEqual(self.test.address.locality.postal_code, self.ad1_dict['postal_code'])
         self.assertEqual(self.test.address.locality.state.name, self.ad1_dict['state'])
@@ -166,44 +174,13 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.country.name, self.ad1_dict['country'])
         self.assertEqual(self.test.address.locality.state.country.code, self.ad1_dict['country_code'])
 
-    def test_assignment_from_tuple(self):
-        self.test.address = ('110 Swanston Street, Melbourne, Australia',)
-        self.assertEqual(self.test.address.street_address, '110 Swanston St')
-        self.assertEqual(self.test.address.locality.name, 'Melbourne')
-        self.assertEqual(self.test.address.locality.postal_code, '3000')
-        self.assertEqual(self.test.address.locality.state.name, 'VIC')
-        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
-        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
-
-    def test_assignment_from_tuple_with_name(self):
-        self.test.address = ('cherry', '103 Flinders Lane, Melbourne, Australia')
-        self.assertEqual(self.test.address.street_address, '103 Flinders Ln')
-        self.assertEqual(self.test.address.locality.name, 'Melbourne')
-        self.assertEqual(self.test.address.locality.postal_code, '3000')
-        self.assertEqual(self.test.address.locality.state.name, 'VIC')
-        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
-        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
-
-    def test_assignment_from_str(self):
-        self.test.address = '110 Swanston Street, Melbourne, Australia'
-        self.assertEqual(self.test.address.street_address, '110 Swanston St')
-        self.assertEqual(self.test.address.locality.name, 'Melbourne')
-        self.assertEqual(self.test.address.locality.postal_code, '3000')
-        self.assertEqual(self.test.address.locality.state.name, 'VIC')
-        self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
-        self.assertEqual(self.test.address.locality.state.country.code, 'AU')
-
-    def test_unprocessed(self):
-        address = 'lkjsdkfjkjkdls'
-        self.test.address = address
-        self.assertEqual(self.test.address.street_address, '')
-        self.assertEqual(self.test.address.unprocessed, address)
-
     def test_save(self):
         self.test.address = self.ad1_dict
         self.test.save()
         test = self.TestModel.objects.all()[0]
-        self.assertEqual(test.address.street_address, self.ad1_dict['street_address'])
+        self.assertEqual(test.address.raw, self.ad1_dict['raw'])
+        self.assertEqual(test.address.street_number, self.ad1_dict['street_number'])
+        self.assertEqual(test.address.route, self.ad1_dict['route'])
         self.assertEqual(test.address.locality.name, self.ad1_dict['locality'])
         self.assertEqual(test.address.locality.postal_code, self.ad1_dict['postal_code'])
         self.assertEqual(test.address.locality.state.name, self.ad1_dict['state'])
