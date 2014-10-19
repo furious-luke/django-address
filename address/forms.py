@@ -56,7 +56,6 @@ class AddressWidget(forms.TextInput):
         ad['raw'] = data.get(name, '')
         return ad
 
-
 class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
 
@@ -65,5 +64,16 @@ class AddressField(forms.ModelChoiceField):
         # Treat `None`s and empty strings as empty.
         if value is None or value == '':
             return None
+
+        # Check for garbage in the lat/lng components.
+        for field in ['latitude', 'longitude']:
+            if field in value:
+                if value[field]:
+                    try:
+                        value[field] = float(value[field])
+                    except:
+                        raise forms.ValidationError('Invalid value for %(field)s', code='invalid', params={'field': field})
+                else:
+                    value[field] = None
 
         return get_or_create_address(value)

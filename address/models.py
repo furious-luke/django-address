@@ -59,6 +59,10 @@ def to_python(value):
         latitude = value.get('latitude', None)
         longitude = value.get('longitude', None)
 
+        # If there is no value (empty raw) then return None.
+        if not raw:
+            return None
+
         # Handle the country.
         try:
             country_obj = Country.objects.get(name=country)
