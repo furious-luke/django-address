@@ -11,22 +11,6 @@ __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField',
            'get_or_create_address']
 
 ##
-## Save an address. Make sure each component is saved in addition
-## to the outer most `Address` object.
-##
-def do_save(address):
-    if address is None:
-        return address
-    address.locality.state.country.save()
-    address.locality.state.country_id = address.locality.state.country.pk
-    address.locality.state.save()
-    address.locality.state_id = address.locality.state.pk
-    address.locality.save()
-    address.locality_id = address.locality.pk
-    address.save()
-    return address.pk
-
-##
 ## Convert a dictionary to an address.
 ##
 def to_python(value):
@@ -73,12 +57,14 @@ def to_python(value):
         try:
             state_obj = State.objects.get(name=state, country=country_obj)
         except State.DoesNotExist:
+            country_obj.save()
             state_obj = State(name=state, code=state_code, country=country_obj)
 
         # Handle the locality.
         try:
             locality_obj = Locality.objects.get(name=locality, state=state_obj)
         except Locality.DoesNotExist:
+            state_obj.save()
             locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
 
         # Handle the address.
@@ -92,6 +78,7 @@ def to_python(value):
                 longitude=longitude,
             )
         except Address.DoesNotExist:
+            locality_obj.save()
             address_obj = Address(
                 street_number=street_number,
                 route=route,
@@ -105,6 +92,9 @@ def to_python(value):
             # If "formatted" is empty try to construct it from other values.
             if not address_obj.formatted:
                 address_obj.formatted = unicode(address_obj)
+
+            # Need to save.
+            address_obj.save()
 
         # Done.
         return address_obj
@@ -235,19 +225,15 @@ class Address(models.Model):
 ## A field for addresses in other models.
 ##
 class AddressField(models.ForeignKey):
-    __metaclass__ = models.SubfieldBase
     description = 'An address'
 
     def __init__(self, **kwargs):
-        kwargs.pop('to', None)
         super(AddressField, self).__init__(Address, **kwargs)
 
-    def to_python(self, value):
-        return to_python(value)
-
-    def pre_save(self, inst, add):
-        address = getattr(inst, self.name)
-        return do_save(address)
+    def deconstruct(self):
+        name, path, args, kwargs = super(AddressField, self).deconstruct()
+        del kwargs['to']
+        return name, path, args, kwargs
 
     def formfield(self, **kwargs):
         from forms import AddressField as AddressFormField
@@ -255,20 +241,9 @@ class AddressField(models.ForeignKey):
         defaults.update(kwargs)
         return super(AddressField, self).formfield(**defaults)
 
-    def value_from_object(self, obj):
-        value = getattr(obj, self.name)
-        return value
-
 ##
 ## A helper to find an existing address or create a new one.
 ##
 def get_or_create_address(value):
     obj = to_python(value)
-    do_save(obj)
     return obj
-
-try:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], ['^address\.models\.AddressField'])
-except:
-    pass
