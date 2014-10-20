@@ -17,7 +17,8 @@ Back when I wrote this Django 1.3 needed to be patched to fix a problem with
 sub-classing `ForeignKey` fields. [Here's a link to the bug report](https://code.djangoproject.com/ticket/15184)
 and the patch I wrote to correct it. We're now at Django 1.7 and the patch I submitted
  has still not been included. It's a bit of a pain, but the
-patch still needs to be applied in order to use this app. Bummer.
+patch still needs to be applied in order to use this app. Bummer. If you're not using
+the development version of Django, please use the `django-1.7` branch.
 
 **Update:** Django 1.8 no longer needs the patch.
 
