@@ -72,10 +72,7 @@ def to_python(value):
             address_obj = Address.objects.get(
                 street_number=street_number,
                 route=route,
-                locality=locality_obj,
-                formatted=formatted,
-                latitude=latitude,
-                longitude=longitude,
+                locality=locality_obj
             )
         except Address.DoesNotExist:
             locality_obj.save()
