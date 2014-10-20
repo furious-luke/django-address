@@ -19,6 +19,8 @@ and the patch I wrote to correct it. We're now at Django 1.7 and the patch I sub
  has still not been included. It's a bit of a pain, but the
 patch still needs to be applied in order to use this app. Bummer.
 
+**Update:** Django 1.8 no longer needs the patch.
+
 ## The Model
 
 The rationale behind the model structure is centered on trying to make
