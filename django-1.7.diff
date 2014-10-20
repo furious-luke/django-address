@@ -1,0 +1,531 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  
+  
+
+  
+
+
+  <head>
+    <title>
+      foreignkey_subclass_patch.20141018.diff on Ticket #15184 – Attachment
+     – Django
+    </title>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!--[if IE]><script type="text/javascript">
+      if (/^#__msie303:/.test(window.location.hash))
+        window.location.replace(window.location.hash.replace(/^#__msie303:/, '#'));
+    </script><![endif]-->
+        <link rel="search" href="/search" />
+        <link rel="help" href="/wiki/TracGuide" />
+        <link rel="alternate" href="/raw-attachment/ticket/15184/foreignkey_subclass_patch.20141018.diff" type="text/x-patch; charset=utf-8" title="Original Format" />
+        <link rel="up" href="/ticket/15184" title="Ticket #15184" />
+        <link rel="start" href="/wiki" />
+        <link rel="stylesheet" href="/chrome/common/css/trac.css" type="text/css" /><link rel="stylesheet" href="/chrome/common/css/diff.css" type="text/css" /><link rel="stylesheet" href="/chrome/common/css/code.css" type="text/css" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      <link type="application/opensearchdescription+xml" rel="search" href="/search/opensearch" title="Search Django" />
+      <script type="text/javascript" charset="utf-8" src="/chrome/common/js/jquery.js"></script>
+      <script type="text/javascript" charset="utf-8" src="/chrome/common/js/babel.js"></script>
+      <script type="text/javascript" charset="utf-8" src="/chrome/common/js/trac.js"></script>
+      <script type="text/javascript" charset="utf-8" src="/chrome/common/js/search.js"></script>
+      <script type="text/javascript" charset="utf-8" src="/chrome/common/js/diff.js"></script>
+      <script type="text/javascript" src="/chrome/common/js/folding.js"></script>
+      <script type="text/javascript">
+        jQuery(document).ready(function($) {
+          $('#preview table.code').enableCollapsibleColumns($('#preview table.code thead th.content'));
+        });
+      </script>
+    <link rel="stylesheet" type="text/css" href="/chrome/site/style.css" />
+  </head>
+  <body>
+    <div id="django-code">
+      <div id="django-container">
+        <div id="django-header">
+          <h1 id="django-logo"><a href="https://www.djangoproject.com/"><img src="https://www.djangoproject.com/s/img/site/hdr_logo.gif" alt="Django" /></a></h1>
+          <ul id="django-nav-global">
+            <li><a href="https://www.djangoproject.com/">Home</a></li>
+            <li><a href="https://www.djangoproject.com/download/">Download</a></li>
+            <li><a href="https://docs.djangoproject.com/">Documentation</a></li>
+            <li><a href="https://www.djangoproject.com/weblog/">Weblog</a></li>
+            <li><a href="https://www.djangoproject.com/community/">Community</a></li>
+            <li id="django-active-nav"><a href="/">Code</a></li>
+          </ul>
+        </div>
+        <div id="django-billboard">
+          <form id="search" action="/search" method="get">
+        <div>
+          <label for="proj-search">Search:</label>
+          <input type="text" id="proj-search" name="q" size="18" value="" />
+          <input type="submit" value="Search" />
+        </div>
+      </form> <!-- move the search form up from it's original position -->
+          <h2><a href="/">Code</a></h2>
+        </div>
+        <div id="django-columnwrap">
+          <div id="django-content-main">
+    <div id="banner">
+      <div id="header">
+        <a id="logo" href="https://www.djangoproject.com/"><img src="https://www.djangoproject.com/s/img/site/hdr_logo.gif" alt="Django" /></a>
+      </div>
+      <form id="search" action="/search" method="get">
+        <div>
+          <label for="proj-search">Search:</label>
+          <input type="text" id="proj-search" name="q" size="18" value="" />
+          <input type="submit" value="Search" />
+        </div>
+      </form>
+      <div id="metanav" class="nav">
+    <ul>
+      <li class="first"><a href="/github/login">GitHub Login</a></li><li><a href="/login">DjangoProject Login</a></li><li><a href="/prefs">Preferences</a></li><li class="last"><a href="/rpc">API</a></li>
+    </ul>
+  </div>
+    </div>
+    <div id="mainnav" class="nav">
+    <ul>
+      <li class="first"><a href="/query">View Tickets</a></li><li><a href="/wiki/Reports">Reports</a></li><li><a href="/timeline">Timeline</a></li><li><a href="/wiki">Wiki</a></li><li class="last"><a href="/search">Search</a></li>
+    </ul>
+  </div>
+    <div id="main">
+      <div id="ctxtnav" class="nav">
+        <h2>Context Navigation</h2>
+        <ul>
+          <li class="last first"><a href="/ticket/15184">Back to Ticket #15184</a></li>
+        </ul>
+        <hr />
+      </div>
+    <div id="content" class="attachment">
+        <h1><a href="/ticket/15184">Ticket #15184</a>: foreignkey_subclass_patch.20141018.diff</h1>
+        <table id="info" summary="Description">
+          <tbody>
+            <tr>
+              <th scope="col">File foreignkey_subclass_patch.20141018.diff,
+                <span title="4665 bytes">4.6 KB</span>
+                (added by furious-luke, <a class="timeline" href="/timeline?from=2014-10-18T05%3A49%3A32-05%3A00&amp;precision=second" title="See timeline at 10/18/14 05:49:32">38 hours ago</a>)</th>
+            </tr>
+            <tr>
+              <td class="message searchable">
+                <p>
+An updated version of the previous patch. This one works cleanly with the current master branch.
+</p>
+
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="preview" class="searchable">
+          
+  <div class="diff">
+  <ul class="entries">
+      <li class="entry">
+        <h2>
+          <a>django/db/models/fields/subclassing.py</a>
+        </h2>
+        <pre>diff --git a/django/db/models/fields/subclassing.py b/django/db/models/fields/subclassing.py
+index 4233106..ce6a760 100644</pre>
+        <table class="trac-diff inline" summary="Differences" cellspacing="0">
+              <colgroup><col class="lineno" /><col class="lineno" /><col class="content" /></colgroup>
+              <thead>
+                <tr>
+                  <th title="File a/django/db/models/fields/subclassing.py">
+                      a
+                  </th>
+                  <th title="File b/django/db/models/fields/subclassing.py">
+                      b
+                  </th>
+                  <td><em> class Creator(object):</em> </td>
+                </tr>
+              </thead>
+            <tbody class="unmod">
+                  <tr>
+                          <th>32</th><th>32</th><td class="l"><span>&nbsp; &nbsp; """</span> </td>
+                  </tr><tr>
+                          <th>33</th><th>33</th><td class="l"><span>&nbsp; &nbsp; A placeholder class that provides a way to set the attribute on the model.</span> </td>
+                  </tr><tr>
+                          <th>34</th><th>34</th><td class="l"><span>&nbsp; &nbsp; """</span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>35</th><th> </th><td class="l"><span>&nbsp; &nbsp; def __init__(self, field<del></del>):</span> </td>
+                      </tr>
+                      <tr class="last">
+                        <th> </th><th>35</th><td class="r"><span>&nbsp; &nbsp; def __init__(self, field<ins>, old_descr=None</ins>):</span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>36</th><th>36</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; self.field = field</span> </td>
+                  </tr>
+            </tbody><tbody class="add">
+                  <tr class="last first">
+                          <th> </th><th>37</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; self.old_descr = old_descr</ins> </td>
+                  </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>37</th><th>38</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>38</th><th>39</th><td class="l"><span>&nbsp; &nbsp; def __get__(self, obj, type=None):</span> </td>
+                  </tr><tr>
+                          <th>39</th><th>40</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; if obj is None:</span> </td>
+                  </tr><tr>
+                          <th>40</th><th>41</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return self</span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>41</th><th> </th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; return obj.__dict__[self.field.name]</span> </td>
+                      </tr>
+                      <tr>
+                        <th> </th><th>42</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; if self.old_descr:</span> </td>
+                      </tr><tr>
+                        <th> </th><th>43</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return self.old_descr.__get__(obj, type)</span> </td>
+                      </tr><tr>
+                        <th> </th><th>44</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; else:</span> </td>
+                      </tr><tr class="last">
+                        <th> </th><th>45</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return obj.__dict__[self.field.name]</span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>42</th><th>46</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>43</th><th>47</th><td class="l"><span>&nbsp; &nbsp; def __set__(self, obj, value):</span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>44</th><th> </th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; obj.__dict__[self.field.name] = self.field.to_python(value)</span> </td>
+                      </tr>
+                      <tr>
+                        <th> </th><th>48</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; val = self.field.to_python(value)</span> </td>
+                      </tr><tr>
+                        <th> </th><th>49</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; if self.old_descr:</span> </td>
+                      </tr><tr>
+                        <th> </th><th>50</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; self.old_descr.__set__(obj, val)</span> </td>
+                      </tr><tr>
+                        <th> </th><th>51</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; else:</span> </td>
+                      </tr><tr class="last">
+                        <th> </th><th>52</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; obj.__dict__[self.field.name] = val</span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>45</th><th>53</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>46</th><th>54</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>47</th><th>55</th><td class="l"><span>def make_contrib(superclass, func=None):</span> </td>
+                  </tr>
+            </tbody>
+              <tbody class="skipped">
+                <tr>
+                  <th><a href="#L58">…</a></th>
+                  <th><a href="#L66">…</a></th>
+                  <td><em> def make_contrib(superclass, func=None):</em> </td>
+                </tr>
+              </tbody>
+            <tbody class="unmod">
+                  <tr>
+                          <th>58</th><th>66</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; func(self, cls, name, **kwargs)</span> </td>
+                  </tr><tr>
+                          <th>59</th><th>67</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; else:</span> </td>
+                  </tr><tr>
+                          <th>60</th><th>68</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; super(superclass, self).contribute_to_class(cls, name, **kwargs)</span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>61</th><th> </th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; setattr(cls, self.name, Creator(self))</span> </td>
+                      </tr>
+                      <tr>
+                        <th> </th><th>69</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; # If this value already exists on the class it is likely a descriptor</span> </td>
+                      </tr><tr>
+                        <th> </th><th>70</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; # for related fields. Keep it around so we can call it from our</span> </td>
+                      </tr><tr>
+                        <th> </th><th>71</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; # descriptor.</span> </td>
+                      </tr><tr>
+                        <th> </th><th>72</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; old_descr = cls.__dict__.get(self.name)</span> </td>
+                      </tr><tr class="last">
+                        <th> </th><th>73</th><td class="r"><span>&nbsp; &nbsp; &nbsp; &nbsp; setattr(cls, self.name, Creator(self, old_descr))</span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>62</th><th>74</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>63</th><th>75</th><td class="l"><span>&nbsp; &nbsp; return contribute_to_class</span> </td>
+                  </tr>
+            </tbody>
+        </table>
+      </li>
+      <li class="entry">
+        <h2>
+          <a>tests/field_subclassing/fields.py</a>
+        </h2>
+        <pre>diff --git a/tests/field_subclassing/fields.py b/tests/field_subclassing/fields.py
+index b94b237..9d1af76 100644</pre>
+        <table class="trac-diff inline" summary="Differences" cellspacing="0">
+              <colgroup><col class="lineno" /><col class="lineno" /><col class="content" /></colgroup>
+              <thead>
+                <tr>
+                  <th title="File a/tests/field_subclassing/fields.py">
+                      a
+                  </th>
+                  <th title="File b/tests/field_subclassing/fields.py">
+                      b
+                  </th>
+                  <td><em> class JSONField(six.with_metaclass(models.SubfieldBase, models.TextField)):</em> </td>
+                </tr>
+              </thead>
+            <tbody class="unmod">
+                  <tr>
+                          <th>94</th><th>94</th><td class="l"><span>class CustomTypedField(models.TextField):</span> </td>
+                  </tr><tr>
+                          <th>95</th><th>95</th><td class="l"><span>&nbsp; &nbsp; def db_type(self, connection):</span> </td>
+                  </tr><tr>
+                          <th>96</th><th>96</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; return 'custom_field'</span> </td>
+                  </tr>
+            </tbody><tbody class="add">
+                  <tr class="first">
+                          <th> </th><th>97</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>98</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>99</th><td class="r"><ins>class FKSubField(models.ForeignKey):</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>100</th><td class="r"><ins>&nbsp; &nbsp; """</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>101</th><td class="r"><ins>&nbsp; &nbsp; Subclass ForeignKey to check descriptor overloading. Confirms ticket</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>102</th><td class="r"><ins>&nbsp; &nbsp; #15184 has been corrected.</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>103</th><td class="r"><ins>&nbsp; &nbsp; """</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>104</th><td class="r"><ins>&nbsp; &nbsp; __metaclass__ = models.SubfieldBase</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>105</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>106</th><td class="r"><ins>&nbsp; &nbsp; def __init__(self, cls, *args, **kwargs):</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>107</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; super(FKSubField, self).__init__(cls, *args, **kwargs)</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>108</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>109</th><td class="r"><ins>&nbsp; &nbsp; def to_python(self, value):</ins> </td>
+                  </tr><tr class="last">
+                          <th> </th><th>110</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; return value</ins> </td>
+                  </tr>
+            </tbody>
+        </table>
+      </li>
+      <li class="entry">
+        <h2>
+          <a>tests/field_subclassing/models.py</a>
+        </h2>
+        <pre>diff --git a/tests/field_subclassing/models.py b/tests/field_subclassing/models.py
+index 66e765a..1ab2cb6 100644</pre>
+        <table class="trac-diff inline" summary="Differences" cellspacing="0">
+              <colgroup><col class="lineno" /><col class="lineno" /><col class="content" /></colgroup>
+              <thead>
+                <tr>
+                  <th title="File a/tests/field_subclassing/models.py">
+                      a
+                  </th>
+                  <th title="File b/tests/field_subclassing/models.py">
+                      b
+                  </th>
+                  <td><em> Tests for field subclassing.</em> </td>
+                </tr>
+              </thead>
+            <tbody class="unmod">
+                  <tr>
+                          <th>4</th><th>4</th><td class="l"><span>from django.db import models</span> </td>
+                  </tr><tr>
+                          <th>5</th><th>5</th><td class="l"><span>from django.utils.encoding import force_text</span> </td>
+                  </tr><tr>
+                          <th>6</th><th>6</th><td class="l"><span></span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>7</th><th> </th><td class="l"><span>from .fields import Small, SmallField, SmallerField, JSONField<del></del></span> </td>
+                      </tr>
+                      <tr class="last">
+                        <th> </th><th>7</th><td class="r"><span>from .fields import Small, SmallField, SmallerField, JSONField<ins>, FKSubField</ins></span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>8</th><th>8</th><td class="l"><span>from django.utils.encoding import python_2_unicode_compatible</span> </td>
+                  </tr><tr>
+                          <th>9</th><th>9</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>10</th><th>10</th><td class="l"><span></span> </td>
+                  </tr>
+            </tbody>
+              <tbody class="skipped">
+                <tr>
+                  <th><a href="#L33">…</a></th>
+                  <th><a href="#L33">…</a></th>
+                  <td><em> class ChoicesModel(models.Model):</em> </td>
+                </tr>
+              </tbody>
+            <tbody class="unmod">
+                  <tr>
+                          <th>33</th><th>33</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>34</th><th>34</th><td class="l"><span>class DataModel(models.Model):</span> </td>
+                  </tr><tr>
+                          <th>35</th><th>35</th><td class="l"><span>&nbsp; &nbsp; data = JSONField()</span> </td>
+                  </tr>
+            </tbody><tbody class="add">
+                  <tr class="first">
+                          <th> </th><th>36</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>37</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>38</th><td class="r"><ins>class FKModel(models.Model):</ins> </td>
+                  </tr><tr class="last">
+                          <th> </th><th>39</th><td class="r"><ins>&nbsp; &nbsp; data = FKSubField(MyModel)</ins> </td>
+                  </tr>
+            </tbody>
+        </table>
+      </li>
+      <li class="entry">
+        <h2>
+          <a>tests/field_subclassing/tests.py</a>
+        </h2>
+        <pre>diff --git a/tests/field_subclassing/tests.py b/tests/field_subclassing/tests.py
+index 5c695a4..f03e045 100644</pre>
+        <table class="trac-diff inline" summary="Differences" cellspacing="0">
+              <colgroup><col class="lineno" /><col class="lineno" /><col class="content" /></colgroup>
+              <thead>
+                <tr>
+                  <th title="File a/tests/field_subclassing/tests.py">
+                      a
+                  </th>
+                  <th title="File b/tests/field_subclassing/tests.py">
+                      b
+                  </th>
+                  <td><em> import inspect</em> </td>
+                </tr>
+              </thead>
+            <tbody class="unmod">
+                  <tr>
+                          <th>5</th><th>5</th><td class="l"><span>from django.core import exceptions, serializers</span> </td>
+                  </tr><tr>
+                          <th>6</th><th>6</th><td class="l"><span>from django.db import connection</span> </td>
+                  </tr><tr>
+                          <th>7</th><th>7</th><td class="l"><span>from django.test import TestCase</span> </td>
+                  </tr>
+            </tbody><tbody class="add">
+                  <tr class="last first">
+                          <th> </th><th>8</th><td class="r"><ins>from django.core.exceptions import ObjectDoesNotExist</ins> </td>
+                  </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>8</th><th>9</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>9</th><th>10</th><td class="l"><span>from .fields import Small, CustomTypedField</span> </td>
+                  </tr>
+            </tbody><tbody class="mod">
+                      <tr class="first">
+                        <th>10</th><th> </th><td class="l"><span>from .models import ChoicesModel, DataModel, MyModel, OtherModel<del></del></span> </td>
+                      </tr>
+                      <tr class="last">
+                        <th> </th><th>11</th><td class="r"><span>from .models import ChoicesModel, DataModel, MyModel, OtherModel<ins>, FKModel</ins></span> </td>
+                      </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>11</th><th>12</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>12</th><th>13</th><td class="l"><span></span> </td>
+                  </tr><tr>
+                          <th>13</th><th>14</th><td class="l"><span>class CustomField(TestCase):</span> </td>
+                  </tr>
+            </tbody>
+              <tbody class="skipped">
+                <tr>
+                  <th><a href="#L94">…</a></th>
+                  <th><a href="#L95">…</a></th>
+                  <td><em> class CustomField(TestCase):</em> </td>
+                </tr>
+              </tbody>
+            <tbody class="unmod">
+                  <tr>
+                          <th>94</th><th>95</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; self.assertEqual(o.data.first, "a")</span> </td>
+                  </tr><tr>
+                          <th>95</th><th>96</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; self.assertEqual(o.data.second, "b")</span> </td>
+                  </tr><tr>
+                          <th>96</th><th>97</th><td class="l"><span></span> </td>
+                  </tr>
+            </tbody><tbody class="add">
+                  <tr class="first">
+                          <th> </th><th>98</th><td class="r"><ins>&nbsp; &nbsp; def test_foreignkey_subclassing(self):</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>99</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; obj = FKModel()</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>100</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>101</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; # We have to do something a bit funky to catch this exception due to</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>102</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; # it originating in a descriptor.</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>103</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; okay = False</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>104</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; try:</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>105</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; # The next line would have raised a KeyError prior to being fixed.</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>106</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; val = obj.data</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>107</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; except ObjectDoesNotExist:</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>108</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; okay = True</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>109</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; self.assertEquals(okay, True)</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>110</th><td class="r"><ins></ins> </td>
+                  </tr><tr>
+                          <th> </th><th>111</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; target = MyModel.objects.create(name="1", data=Small(1, 2))</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>112</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; obj.data = target</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>113</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; obj.save()</ins> </td>
+                  </tr><tr>
+                          <th> </th><th>114</th><td class="r"><ins>&nbsp; &nbsp; &nbsp; &nbsp; self.assertEqual(obj.data, target)</ins> </td>
+                  </tr><tr class="last">
+                          <th> </th><th>115</th><td class="r"><ins></ins> </td>
+                  </tr>
+            </tbody><tbody class="unmod">
+                  <tr>
+                          <th>97</th><th>116</th><td class="l"><span>&nbsp; &nbsp; def test_subfieldbase_plays_nice_with_module_inspect(self):</span> </td>
+                  </tr><tr>
+                          <th>98</th><th>117</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; """</span> </td>
+                  </tr><tr>
+                          <th>99</th><th>118</th><td class="l"><span>&nbsp; &nbsp; &nbsp; &nbsp; Custom fields should play nice with python standard module inspect.</span> </td>
+                  </tr>
+            </tbody>
+        </table>
+      </li>
+  </ul>
+</div>
+
+        </div>
+    </div>
+    <div id="altlinks">
+      <h3>Download in other formats:</h3>
+      <ul>
+        <li class="last first">
+          <a rel="nofollow" href="/raw-attachment/ticket/15184/foreignkey_subclass_patch.20141018.diff">Original Format</a>
+        </li>
+      </ul>
+    </div>
+    </div>
+    <div id="footer" lang="en" xml:lang="en"><hr />
+      <a id="tracpowered" href="http://trac.edgewall.org/"><img src="/chrome/common/trac_logo_mini.png" height="30" width="107" alt="Trac Powered" /></a>
+      <p class="left">Powered by <a href="/about"><strong>Trac 1.0.1</strong></a><br />
+        By <a href="http://www.edgewall.org/">Edgewall Software</a>.</p>
+      <p class="right"></p>
+    </div>
+          </div>
+        </div>
+        <div id="django-footer">
+          <p>© 2005-2014 <a href="https://www.djangoproject.com/foundation/">Django Software Foundation</a> unless otherwise noted. Django is a registered trademark of the Django Software Foundation.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
