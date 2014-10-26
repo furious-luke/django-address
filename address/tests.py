@@ -163,7 +163,7 @@ class AddressFieldTestCase(TestCase):
         self.test = self.TestModel()
 
     def test_assignment_from_dict(self):
-        self.test.address = get_or_create_address(self.ad1_dict)
+        self.test.address = self.ad1_dict
         self.assertEqual(self.test.address.raw, self.ad1_dict['raw'])
         self.assertEqual(self.test.address.street_number, self.ad1_dict['street_number'])
         self.assertEqual(self.test.address.route, self.ad1_dict['route'])
@@ -174,8 +174,12 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.country.name, self.ad1_dict['country'])
         self.assertEqual(self.test.address.locality.state.country.code, self.ad1_dict['country_code'])
 
+    def test_assignment_from_string(self):
+        self.test.address = self.ad1_dict['raw']
+        self.assertEqual(self.test.address.raw, self.ad1_dict['raw'])
+
     def test_save(self):
-        self.test.address = get_or_create_address(self.ad1_dict)
+        self.test.address = self.ad1_dict
         self.test.save()
         test = self.TestModel.objects.all()[0]
         self.assertEqual(test.address.raw, self.ad1_dict['raw'])

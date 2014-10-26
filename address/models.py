@@ -1,14 +1,12 @@
 import urllib2
 from django.db import models
 from django.core.exceptions import ValidationError
-from djangoutils.conv import to_address
-from googlemaps import GoogleMapsError
+from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
 
 import logging
 logger = logging.getLogger(__name__)
 
-__all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField',
-           'get_or_create_address']
+__all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
 
 ##
 ## Convert a dictionary to an address.
@@ -27,6 +25,12 @@ def to_python(value):
     # Django being a cunt.
     elif isinstance(value, (int, long)):
         return value
+
+    # A string is considered a raw value.
+    elif isinstance(value, basestring):
+        obj = Address(raw=value)
+        obj.save()
+        return obj
 
     # A dictionary of named address components.
     elif isinstance(value, dict):
@@ -218,6 +222,11 @@ class Address(models.Model):
             longitude=self.longitude,
         )
 
+class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
+
+    def __set__(self, inst, value):
+        super(AddressDescriptor, self).__set__(inst, to_python(value))
+
 ##
 ## A field for addresses in other models.
 ##
@@ -226,6 +235,10 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, **kwargs):
         super(AddressField, self).__init__(Address, **kwargs)
+
+    def contribute_to_class(self, cls, name, virtual_only=False):
+        super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
+        setattr(cls, self.name, AddressDescriptor(self))
 
     def deconstruct(self):
         name, path, args, kwargs = super(AddressField, self).deconstruct()
@@ -237,10 +250,3 @@ class AddressField(models.ForeignKey):
         defaults = dict(form_class=AddressFormField)
         defaults.update(kwargs)
         return super(AddressField, self).formfield(**defaults)
-
-##
-## A helper to find an existing address or create a new one.
-##
-def get_or_create_address(value):
-    obj = to_python(value)
-    return obj

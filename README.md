@@ -11,16 +11,11 @@ in the process. Cheers!
 Also, *there will be bugs*, please let me know of any issues and I'll do my
 best to fix them.
 
-## Installation (important)
+## Installation
 
-Back when I wrote this Django 1.3 needed to be patched to fix a problem with
-sub-classing `ForeignKey` fields. [Here's a link to the bug report](https://code.djangoproject.com/ticket/15184)
-and the patch I wrote to correct it. We're now at Django 1.7 and the patch I submitted
- has still not been included. It's a bit of a pain, but the
-patch still needs to be applied in order to use this app. Bummer. If you're not using
-the development version of Django, please use the `django-1.7` branch.
-
-**Update:** Django 1.8 no longer needs the patch.
+Previously a patch for Django was required to make this app work, but as
+of 1.7 the patch is no longer needed. Installation is now done as per
+usual.
 
 ## The Model
 
@@ -126,8 +121,8 @@ all components may be accessed naturally through the object. For example::
 ## Forms
 
 Included is a form field for simplifying address entry. A Google maps
-auto-complete is performed on address and passed to the model, if possible.
-Otherwise the raw input is used.
+auto-complete is performed in the browser and passed to the view. If
+the lookup fails the raw entered value is used.
 
 ## Partial Example
 
@@ -137,7 +132,7 @@ The model:
 from address.models import AddressField
 
 class Person(models.Model):
-  address = addr_models.AddressField()
+  address = AddressField()
 ```
 
 The form:
@@ -146,14 +141,14 @@ The form:
 from address.forms import AddressField
 
 class PersonForm(forms.Form):
-  address = addr_forms.AddressField()
+  address = AddressField()
 ```
 
 The template:
 
 ```html
 <head>
-{% form.media %} <!-- needed for JS -->
+{% form.media %} <!-- needed for JS/GoogleMaps lookup -->
 </head>
 <body>
   {{ form }}
