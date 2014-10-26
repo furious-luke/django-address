@@ -76,7 +76,9 @@ For example:
 Values can be set either by assigning an Address object:
 
 ```python
-  obj.address = Address.objects.create(...)
+  addr = Address(...)
+  addr.save()
+  obj.address = addr
 ```
 
 Or by supplying a dictionary of address components:
