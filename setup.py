@@ -10,7 +10,7 @@ setup(
     maintainer_email='furious.luke@gmail.com',
     url='https://github.com/furious-luke/django-address',
     description='A django application for describing addresses.',
-    long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
