@@ -234,16 +234,17 @@ class AddressField(models.ForeignKey):
     description = 'An address'
 
     def __init__(self, **kwargs):
-        super(AddressField, self).__init__(Address, **kwargs)
+        kwargs['to'] = Address
+        super(AddressField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
         super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
         setattr(cls, self.name, AddressDescriptor(self))
 
-    def deconstruct(self):
-        name, path, args, kwargs = super(AddressField, self).deconstruct()
-        del kwargs['to']
-        return name, path, args, kwargs
+    # def deconstruct(self):
+    #     name, path, args, kwargs = super(AddressField, self).deconstruct()
+    #     del kwargs['to']
+    #     return name, path, args, kwargs
 
     def formfield(self, **kwargs):
         from forms import AddressField as AddressFormField
