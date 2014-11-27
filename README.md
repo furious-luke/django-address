@@ -15,7 +15,20 @@ best to fix them.
 
 Previously a patch for Django was required to make this app work, but as
 of 1.7 the patch is no longer needed. Installation is now done as per
-usual.
+usual. The package is installed with:
+
+```bash
+python setup.py install
+```
+
+Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
+
+```python
+INSTALLED_APPS = (
+    ...
+    'address',
+)
+```
 
 ## The Model
 
@@ -66,6 +79,8 @@ It can be created using the same optional arguments as a ForeignKey field.
 For example:
 
 ```python
+  from address.models import AddressField
+
   class MyModel(models.Model):
     address1 = AddressField()
     address2 = AddressField(blank=True, null=True)
@@ -125,6 +140,8 @@ all components may be accessed naturally through the object. For example::
 Included is a form field for simplifying address entry. A Google maps
 auto-complete is performed in the browser and passed to the view. If
 the lookup fails the raw entered value is used.
+
+TODO: Talk about this more.
 
 ## Partial Example
 
