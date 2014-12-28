@@ -59,7 +59,8 @@ class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
 
     def __init__(self, *args, **kwargs):
-        super(AddressField, self).__init__([], *args, **kwargs)
+        kwargs['queryset'] = Address.objects.none()
+        super(AddressField, self).__init__(*args, **kwargs)
 
     def to_python(self, value):
 
