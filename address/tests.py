@@ -2,7 +2,12 @@ from django.test import TestCase
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import Model
+from django.forms import ValidationError, Form
 from .models import *
+from .forms import AddressField as FormAddressField
+
+class TestForm(Form):
+    address = FormAddressField()
 
 class CountryTestCase(TestCase):
 
@@ -191,3 +196,23 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(test.address.locality.state.code, self.ad1_dict['state_code'])
         self.assertEqual(test.address.locality.state.country.name, self.ad1_dict['country'])
         self.assertEqual(test.address.locality.state.country.code, self.ad1_dict['country_code'])
+
+class FormAddressFieldTestCase(TestCase):
+
+    def setUp(self):
+        self.form = TestForm()
+        self.field = self.form.base_fields['address']
+
+    def test_to_python_none(self):
+        self.assertEqual(self.field.to_python(None), None)
+
+    def test_to_python_empty(self):
+        self.assertEqual(self.field.to_python(''), None)
+
+    def test_to_python_invalid_lat_lng(self):
+        self.assertRaises(ValidationError, self.field.to_python, {'latitude': 'x'})
+        self.assertRaises(ValidationError, self.field.to_python, {'longitude': 'x'})
+
+    def test_to_python(self):
+        res = self.field.to_python({'raw': 'Someplace'})
+        self.assertEqual(res.raw, 'Someplace')

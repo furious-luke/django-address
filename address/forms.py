@@ -3,7 +3,7 @@ from django import forms
 # from uni_form.helpers import *
 from django.utils.safestring import mark_safe
 from googlemaps import GoogleMapsError
-from models import get_or_create_address, Address
+from models import Address, to_python
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class AddressWidget(forms.TextInput):
             ad = value.as_dict()
 
         # Generate the elements. We should create a suite of hidden fields
-        # for each individual component, and a visible field for the raw
+        # For each individual component, and a visible field for the raw
         # input. Begin by generating the raw input.
         elems = [super(AddressWidget, self).render(name, ad.get('formatted', None), attrs, **kwargs)]
 
@@ -58,6 +58,9 @@ class AddressWidget(forms.TextInput):
 class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
 
+    def __init__(self, *args, **kwargs):
+        super(AddressField, self).__init__([], *args, **kwargs)
+
     def to_python(self, value):
 
         # Treat `None`s and empty strings as empty.
@@ -71,8 +74,9 @@ class AddressField(forms.ModelChoiceField):
                     try:
                         value[field] = float(value[field])
                     except:
-                        raise forms.ValidationError('Invalid value for %(field)s', code='invalid', params={'field': field})
+                        raise forms.ValidationError('Invalid value for %(field)s', code='invalid',
+                                                    params={'field': field})
                 else:
                     value[field] = None
 
-        return get_or_create_address(value)
+        return to_python(value)
