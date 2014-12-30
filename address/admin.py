@@ -1,5 +1,5 @@
 from django.contrib import admin
-from address.models import *
+from .models import *
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):

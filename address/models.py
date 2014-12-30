@@ -2,7 +2,7 @@ try:
     import urllib.request as urllib2
 except ImportError:
     import urllib2
-    
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
@@ -251,7 +251,7 @@ class AddressField(models.ForeignKey):
     #     return name, path, args, kwargs
 
     def formfield(self, **kwargs):
-        from forms import AddressField as AddressFormField
+        from .forms import AddressField as AddressFormField
         defaults = dict(form_class=AddressFormField)
         defaults.update(kwargs)
         return super(AddressField, self).formfield(**defaults)
