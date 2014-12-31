@@ -1,16 +1,19 @@
-import urllib2
-from django.db import models
-from django.core.exceptions import ValidationError
-from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
-
 import logging
+
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models.fields import related
+from django.utils.encoding import python_2_unicode_compatible
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
 
 ##
-## Convert a dictionary to an address.
+# Convert a dictionary to an address.
 ##
+
+
 def to_python(value):
 
     # Keep `None`s.
@@ -21,13 +24,13 @@ def to_python(value):
     if isinstance(value, Address):
         return value
 
-    # If we have an integer, assume it is a model primary key. This is mostly for
-    # Django being a cunt.
-    elif isinstance(value, (int, long)):
+    # If we have an integer, assume it is a model primary key.
+    # This is mostly for Django being a cunt.
+    elif isinstance(value, int):
         return value
 
     # A string is considered a raw value.
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         obj = Address(raw=value)
         obj.save()
         return obj
@@ -69,7 +72,10 @@ def to_python(value):
             locality_obj = Locality.objects.get(name=locality, state=state_obj)
         except Locality.DoesNotExist:
             state_obj.save()
-            locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
+            locality_obj = Locality(
+                name=locality,
+                postal_code=postal_code,
+                state=state_obj)
 
         # Handle the address.
         try:
@@ -92,7 +98,7 @@ def to_python(value):
 
             # If "formatted" is empty try to construct it from other values.
             if not address_obj.formatted:
-                address_obj.formatted = unicode(address_obj)
+                address_obj.formatted = str(address_obj)
 
             # Need to save.
             address_obj.save()
@@ -104,48 +110,59 @@ def to_python(value):
     raise ValidationError('Invalid address value.')
 
 ##
-## A country.
+# A country.
 ##
+
+
+@python_2_unicode_compatible
 class Country(models.Model):
-    name = models.CharField(max_length=40, unique=True, blank=True)
-    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
+    name = models.CharField(max_length=255, unique=True, blank=True)
+    code = models.CharField(
+        max_length=255,
+        blank=True)  # not unique as there are duplicates (IT)
 
     class Meta:
         verbose_name_plural = 'Countries'
         ordering = ('name',)
 
-    def __unicode__(self):
-        return u'%s'%(self.name or self.code)
+    def __str__(self):
+        return '%s' % (self.name or self.code)
 
 ##
-## A state. Google refers to this as `administration_level_1`.
+# A state. Google refers to this as `administration_level_1`.
 ##
+
+
+@python_2_unicode_compatible
 class State(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    code = models.CharField(max_length=3, blank=True)
+    name = models.CharField(max_length=255, blank=True)
+    code = models.CharField(max_length=255, blank=True)
     country = models.ForeignKey(Country, related_name='states')
 
     class Meta:
         unique_together = ('name', 'country')
         ordering = ('country', 'name')
 
-    def __unicode__(self):
+    def __str__(self):
         txt = self.to_str()
-        country = u'%s'%self.country
+        country = '%s' % self.country
         if country and txt:
-            txt += u', '
+            txt += ', '
         txt += country
         return txt
 
     def to_str(self):
-        return u'%s'%(self.name or self.code)
+        return '%s' % (self.name or self.code)
 
 ##
-## A locality (suburb).
+# A locality (suburb).
 ##
+
+
+@python_2_unicode_compatible
 class Locality(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    postal_code = models.CharField(max_length=10, blank=True)
+    name = models.CharField(max_length=255, blank=True)
+    postal_code = models.CharField(max_length=255, blank=True)
     state = models.ForeignKey(State, related_name='localities')
 
     class Meta:
@@ -153,29 +170,37 @@ class Locality(models.Model):
         unique_together = ('name', 'state')
         ordering = ('state', 'name')
 
-    def __unicode__(self):
-        txt = u'%s'%self.name
+    def __str__(self):
+        txt = '%s' % self.name
         state = self.state.to_str() if self.state else ''
         if txt and state:
-            txt += u', '
+            txt += ', '
         txt += state
         if self.postal_code:
-            txt += u' %s'%self.postal_code
-        cntry = u'%s'%(self.state.country if self.state and self.state.country else '')
+            txt += ' %s' % self.postal_code
+        cntry = '%s' % (
+            self.state.country if self.state and self.state.country else '')
         if cntry:
-            txt += u', %s'%cntry
+            txt += ', %s' % cntry
         return txt
 
 ##
-## An address. If for any reason we are unable to find a matching
-## decomposed address we will store the raw address string in `raw`.
+# An address. If for any reason we are unable to find a matching
+# decomposed address we will store the raw address string in `raw`.
 ##
+
+
+@python_2_unicode_compatible
 class Address(models.Model):
-    street_number = models.CharField(max_length=20, blank=True)
-    route = models.CharField(max_length=100, blank=True)
-    locality = models.ForeignKey(Locality, related_name='addresses', blank=True, null=True)
-    raw = models.CharField(max_length=200)
-    formatted = models.CharField(max_length=200, blank=True)
+    street_number = models.CharField(max_length=255, blank=True)
+    route = models.CharField(max_length=255, blank=True)
+    locality = models.ForeignKey(
+        Locality,
+        related_name='addresses',
+        blank=True,
+        null=True)
+    raw = models.CharField(max_length=255)
+    formatted = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
@@ -184,27 +209,28 @@ class Address(models.Model):
         ordering = ('locality', 'route', 'street_number')
         unique_together = ('locality', 'route', 'street_number')
 
-    def __unicode__(self):
+    def __str__(self):
         if self.formatted != '':
-            txt = u'%s'%self.formatted
+            txt = '%s' % self.formatted
         elif self.locality:
-            txt = u''
+            txt = ''
             if self.street_number:
-                txt = u'%s'%self.street_number
+                txt = '%s' % self.street_number
             if self.route:
                 if txt:
-                    txt += u' %s'%self.route
-            locality = u'%s'%self.locality
+                    txt += ' %s' % self.route
+            locality = '%s' % self.locality
             if txt and locality:
-                txt += u', '
+                txt += ', '
             txt += locality
         else:
-            txt = u'%s'%self.raw
+            txt = '%s' % self.raw
         return txt
 
     def clean(self):
         if not self.raw:
-            raise ValidationError('Addresses may not have a blank `raw` field.')
+            raise ValidationError(
+                'Addresses may not have a blank `raw` field.')
 
     def as_dict(self):
         return dict(
@@ -222,14 +248,17 @@ class Address(models.Model):
             longitude=self.longitude,
         )
 
-class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
+
+class AddressDescriptor(related.ReverseSingleRelatedObjectDescriptor):
 
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
 
 ##
-## A field for addresses in other models.
+# A field for addresses in other models.
 ##
+
+
 class AddressField(models.ForeignKey):
     description = 'An address'
 
@@ -238,7 +267,12 @@ class AddressField(models.ForeignKey):
         super(AddressField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
-        super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
+        super(
+            related.ForeignObject,
+            self).contribute_to_class(
+            cls,
+            name,
+            virtual_only=virtual_only)
         setattr(cls, self.name, AddressDescriptor(self))
 
     # def deconstruct(self):
@@ -247,7 +281,7 @@ class AddressField(models.ForeignKey):
     #     return name, path, args, kwargs
 
     def formfield(self, **kwargs):
-        from forms import AddressField as AddressFormField
+        from .forms import AddressField as AddressFormField
         defaults = dict(form_class=AddressFormField)
         defaults.update(kwargs)
         return super(AddressField, self).formfield(**defaults)

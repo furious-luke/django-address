@@ -1,14 +1,14 @@
-import urllib2
-from django import forms
-# from uni_form.helpers import *
-from django.utils.safestring import mark_safe
-from googlemaps import GoogleMapsError
-from models import Address, to_python
-
 import logging
+
+from django import forms
+from django.utils.safestring import mark_safe
+
+from .models import Address, to_python
+
 logger = logging.getLogger(__name__)
 
 __all__ = ['AddressWidget', 'AddressField']
+
 
 class AddressWidget(forms.TextInput):
     components = [('country', 'country'), ('country_code', 'country_short'),
@@ -29,7 +29,7 @@ class AddressWidget(forms.TextInput):
             ad = {}
         elif isinstance(value, dict):
             ad = value
-        elif isinstance(value, (int, long)):
+        elif isinstance(value, int):
             ad = Address.objects.get(pk=value)
             ad = ad.as_dict()
         else:
@@ -38,22 +38,38 @@ class AddressWidget(forms.TextInput):
         # Generate the elements. We should create a suite of hidden fields
         # For each individual component, and a visible field for the raw
         # input. Begin by generating the raw input.
-        elems = [super(AddressWidget, self).render(name, ad.get('formatted', None), attrs, **kwargs)]
+        elems = [
+            super(
+                AddressWidget, self).render(
+                    name,
+                    ad.get('formatted', None),
+                    attrs,
+                    **kwargs
+            )
+        ]
 
         # Now add the hidden fields.
-        elems.append('<div id="%s_components">'%name)
+        elems.append('<div id="%s_components">' % name)
         for com in self.components:
-            elems.append('<input type="hidden" name="%s_%s" data-geo="%s" value="%s" />'%(
-                name, com[0], com[1], ad.get(com[0], ''))
+            elems.append(
+                '<input type="hidden" name="%s_%s" '
+                'data-geo="%s" value="%s" />' % (
+                    name,
+                    com[0],
+                    com[1],
+                    ad.get(com[0], '')
+                )
             )
         elems.append('</div>')
 
-        return mark_safe(unicode('\n'.join(elems)))
+        return mark_safe('\n'.join(elems))
 
     def value_from_datadict(self, data, files, name):
-        ad = dict([(c[0], data.get(name + '_' + c[0], '')) for c in self.components])
+        ad = dict([(c[0], data.get(name + '_' + c[0], ''))
+                   for c in self.components])
         ad['raw'] = data.get(name, '')
         return ad
+
 
 class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
@@ -75,8 +91,11 @@ class AddressField(forms.ModelChoiceField):
                     try:
                         value[field] = float(value[field])
                     except:
-                        raise forms.ValidationError('Invalid value for %(field)s', code='invalid',
-                                                    params={'field': field})
+                        raise forms.ValidationError(
+                            'Invalid value for %(field)s',
+                            code='invalid',
+                            params={'field': field}
+                        )
                 else:
                     value[field] = None
 
