@@ -8,6 +8,89 @@ logger = logging.getLogger(__name__)
 
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
 
+class InconsistentDictError(Exception):
+    pass
+
+def _to_python(value):
+    raw = value.get('raw', '')
+    country = value.get('country', '')
+    country_code = value.get('country_code', '')
+    state = value.get('state', '')
+    state_code = value.get('state_code', '')
+    locality = value.get('locality', '')
+    postal_code = value.get('postal_code', '')
+    street_number = value.get('street_number', '')
+    route = value.get('route', '')
+    formatted = value.get('formatted', '')
+    latitude = value.get('latitude', None)
+    longitude = value.get('longitude', None)
+
+    # If there is no value (empty raw) then return None.
+    if not raw:
+        return None
+
+    # If we have an inconsistent set of value bail out now.
+    if (country or state or locality) and not (country and state and locality):
+        raise InconsistentDictError
+
+    # Handle the country.
+    try:
+        country_obj = Country.objects.get(name=country)
+    except Country.DoesNotExist:
+        if country:
+            country_obj = Country.objects.create(name=country, code=country_code)
+        else:
+            country_obj = None
+
+    # Handle the state.
+    try:
+        state_obj = State.objects.get(name=state, country=country_obj)
+    except State.DoesNotExist:
+        if state:
+            state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
+        else:
+            state_obj = None
+
+    # Handle the locality.
+    try:
+        locality_obj = Locality.objects.get(name=locality, state=state_obj)
+    except Locality.DoesNotExist:
+        if locality:
+            locality_obj = Locality.objects.create(name=locality, postal_code=postal_code, state=state_obj)
+        else:
+            locality_obj = None
+
+    # Handle the address.
+    try:
+        if not (street_number or route or locality):
+            address_obj = Address.objects.get(raw=raw)
+        else:
+            address_obj = Address.objects.get(
+                street_number=street_number,
+                route=route,
+                locality=locality_obj
+            )
+    except Address.DoesNotExist:
+        address_obj = Address(
+            street_number=street_number,
+            route=route,
+            raw=raw,
+            locality=locality_obj,
+            formatted=formatted,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+        # If "formatted" is empty try to construct it from other values.
+        if not address_obj.formatted:
+            address_obj.formatted = unicode(address_obj)
+
+        # Need to save.
+        address_obj.save()
+
+    # Done.
+    return address_obj
+
 ##
 ## Convert a dictionary to an address.
 ##
@@ -34,71 +117,12 @@ def to_python(value):
 
     # A dictionary of named address components.
     elif isinstance(value, dict):
-        raw = value.get('raw', '')
-        country = value.get('country', '')
-        country_code = value.get('country_code', '')
-        state = value.get('state', '')
-        state_code = value.get('state_code', '')
-        locality = value.get('locality', '')
-        postal_code = value.get('postal_code', '')
-        street_number = value.get('street_number', '')
-        route = value.get('route', '')
-        formatted = value.get('formatted', '')
-        latitude = value.get('latitude', None)
-        longitude = value.get('longitude', None)
 
-        # If there is no value (empty raw) then return None.
-        if not raw:
-            return None
-
-        # Handle the country.
+        # Attempt a conversion.
         try:
-            country_obj = Country.objects.get(name=country)
-        except Country.DoesNotExist:
-            country_obj = Country(name=country, code=country_code)
-
-        # Handle the state.
-        try:
-            state_obj = State.objects.get(name=state, country=country_obj)
-        except State.DoesNotExist:
-            country_obj.save()
-            state_obj = State(name=state, code=state_code, country=country_obj)
-
-        # Handle the locality.
-        try:
-            locality_obj = Locality.objects.get(name=locality, state=state_obj)
-        except Locality.DoesNotExist:
-            state_obj.save()
-            locality_obj = Locality(name=locality, postal_code=postal_code, state=state_obj)
-
-        # Handle the address.
-        try:
-            address_obj = Address.objects.get(
-                street_number=street_number,
-                route=route,
-                locality=locality_obj
-            )
-        except Address.DoesNotExist:
-            locality_obj.save()
-            address_obj = Address(
-                street_number=street_number,
-                route=route,
-                raw=raw,
-                locality=locality_obj,
-                formatted=formatted,
-                latitude=latitude,
-                longitude=longitude,
-            )
-
-            # If "formatted" is empty try to construct it from other values.
-            if not address_obj.formatted:
-                address_obj.formatted = unicode(address_obj)
-
-            # Need to save.
-            address_obj.save()
-
-        # Done.
-        return address_obj
+            return _to_python(value)
+        except InconsistentDictError:
+            return Address.objects.create(raw=value['raw'])
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')
@@ -182,7 +206,7 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = 'Addresses'
         ordering = ('locality', 'route', 'street_number')
-        unique_together = ('locality', 'route', 'street_number')
+        # unique_together = ('locality', 'route', 'street_number')
 
     def __unicode__(self):
         if self.formatted != '':
@@ -207,20 +231,24 @@ class Address(models.Model):
             raise ValidationError('Addresses may not have a blank `raw` field.')
 
     def as_dict(self):
-        return dict(
+        ad = dict(
             street_number=self.street_number,
             route=self.route,
-            locality=self.locality.name,
-            postal_code=self.locality.postal_code,
-            state=self.locality.state.name,
-            state_code=self.locality.state.code,
-            country=self.locality.state.country.name,
-            country_code=self.locality.state.country.code,
             raw=self.raw,
             formatted=self.formatted,
-            latitude=self.latitude,
-            longitude=self.longitude,
+            latitude=self.latitude if self.latitude else '',
+            longitude=self.longitude if self.longitude else '',
         )
+        if self.locality:
+            ad['locality'] = self.locality.name
+            ad['postal_code'] = self.locality.postal_code
+            if self.locality.state:
+                ad['state'] = self.locality.state.name
+                ad['state_code'] = self.locality.state.code
+                if self.locality.state.country:
+                    ad['country'] = self.locality.state.country.name
+                    ad['country_code'] = self.locality.state.country.code
+        return ad
 
 class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
 

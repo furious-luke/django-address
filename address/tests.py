@@ -179,6 +179,58 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.locality.state.country.name, self.ad1_dict['country'])
         self.assertEqual(self.test.address.locality.state.country.code, self.ad1_dict['country_code'])
 
+    def test_assignment_from_dict_no_country(self):
+        ad = {
+            'raw': '1 Somewhere Street, Northcote, Victoria 3070, VIC, AU',
+            'street_number': '1',
+            'route': 'Somewhere Street',
+            'locality': 'Northcote',
+            'state': 'Victoria',
+        }
+        self.test.address = ad
+        self.assertEqual(self.test.address.raw, ad['raw'])
+        self.assertEqual(self.test.address.street_number, '')
+        self.assertEqual(self.test.address.route, '')
+        self.assertEqual(self.test.address.locality, None)
+
+    def test_assignment_from_dict_no_state(self):
+        ad = {
+            'raw': 'Somewhere',
+            'locality': 'Northcote',
+            'country': 'Australia',
+        }
+        self.test.address = ad
+        self.assertEqual(self.test.address.raw, ad['raw'])
+        self.assertEqual(self.test.address.street_number, '')
+        self.assertEqual(self.test.address.route, '')
+        self.assertEqual(self.test.address.locality, None)
+
+    def test_assignment_from_dict_no_locality(self):
+        ad = {
+            'raw': '1 Somewhere Street, Northcote, Victoria 3070, VIC, AU',
+            'street_number': '1',
+            'route': 'Somewhere Street',
+            'state': 'Victoria',
+            'country': 'Australia',
+        }
+        self.test.address = ad
+        self.assertEqual(self.test.address.raw, ad['raw'])
+        self.assertEqual(self.test.address.street_number, '')
+        self.assertEqual(self.test.address.route, '')
+        self.assertEqual(self.test.address.locality, None)
+
+    def test_assignment_from_dict_only_address(self):
+        ad = {
+            'raw': '1 Somewhere Street, Northcote, Victoria 3070, VIC, AU',
+            'street_number': '1',
+            'route': 'Somewhere Street',
+        }
+        self.test.address = ad
+        self.assertEqual(self.test.address.raw, ad['raw'])
+        self.assertEqual(self.test.address.street_number, ad['street_number'])
+        self.assertEqual(self.test.address.route, ad['route'])
+        self.assertEqual(self.test.address.locality, None)
+
     def test_assignment_from_string(self):
         self.test.address = self.ad1_dict['raw']
         self.assertEqual(self.test.address.raw, self.ad1_dict['raw'])
