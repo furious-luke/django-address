@@ -137,12 +137,12 @@ class AddressTestCase(TestCase):
         self.assertEqual(qs[2].route, '')
         self.assertEqual(qs[3].route, 'Some Street')
 
-    def test_unique_street_address_locality(self):
-        Address.objects.create(street_number='10', route='Other Street', locality=self.au_vic_nco)
-        self.assertRaises(
-            IntegrityError, Address.objects.create,
-            street_number='10', route='Other Street', locality=self.au_vic_mel
-        )
+    # def test_unique_street_address_locality(self):
+    #     Address.objects.create(street_number='10', route='Other Street', locality=self.au_vic_nco)
+    #     self.assertRaises(
+    #         IntegrityError, Address.objects.create,
+    #         street_number='10', route='Other Street', locality=self.au_vic_mel
+    #     )
 
     def test_unicode(self):
         self.assertEqual(unicode(self.ad1), u'1 Some Street, Melbourne, Victoria 3000, Australia')
