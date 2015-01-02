@@ -1,11 +1,17 @@
-import urllib2
 from django import forms
 # from uni_form.helpers import *
 from django.utils.safestring import mark_safe
-from models import Address, to_python
+from .models import Address, to_python
 
 import logging
 logger = logging.getLogger(__name__)
+
+# Python 3 fixes.
+import sys
+if sys.version > '3':
+    long = int
+    basestring = (str, bytes)
+    unicode = str
 
 __all__ = ['AddressWidget', 'AddressField']
 

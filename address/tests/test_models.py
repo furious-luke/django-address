@@ -4,6 +4,13 @@ from django.core.exceptions import ValidationError
 from django.db.models import Model
 from address.models import *
 
+# Python 3 fixes.
+import sys
+if sys.version > '3':
+    long = int
+    basestring = (str, bytes)
+    unicode = str
+
 class CountryTestCase(TestCase):
 
     def setUp(self):

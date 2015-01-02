@@ -1,10 +1,17 @@
-import urllib2
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
+from django.utils.encoding import python_2_unicode_compatible
 
 import logging
 logger = logging.getLogger(__name__)
+
+# Python 3 fixes.
+import sys
+if sys.version > '3':
+    long = int
+    basestring = (str, bytes)
+    unicode = str
 
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
 
@@ -130,6 +137,7 @@ def to_python(value):
 ##
 ## A country.
 ##
+@python_2_unicode_compatible
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
     code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
@@ -138,12 +146,13 @@ class Country(models.Model):
         verbose_name_plural = 'Countries'
         ordering = ('name',)
 
-    def __unicode__(self):
-        return u'%s'%(self.name or self.code)
+    def __str__(self):
+        return '%s'%(self.name or self.code)
 
 ##
 ## A state. Google refers to this as `administration_level_1`.
 ##
+@python_2_unicode_compatible
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
     code = models.CharField(max_length=3, blank=True)
@@ -153,20 +162,21 @@ class State(models.Model):
         unique_together = ('name', 'country')
         ordering = ('country', 'name')
 
-    def __unicode__(self):
+    def __str__(self):
         txt = self.to_str()
-        country = u'%s'%self.country
+        country = '%s'%self.country
         if country and txt:
-            txt += u', '
+            txt += ', '
         txt += country
         return txt
 
     def to_str(self):
-        return u'%s'%(self.name or self.code)
+        return '%s'%(self.name or self.code)
 
 ##
 ## A locality (suburb).
 ##
+@python_2_unicode_compatible
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
@@ -177,23 +187,24 @@ class Locality(models.Model):
         unique_together = ('name', 'state')
         ordering = ('state', 'name')
 
-    def __unicode__(self):
-        txt = u'%s'%self.name
+    def __str__(self):
+        txt = '%s'%self.name
         state = self.state.to_str() if self.state else ''
         if txt and state:
-            txt += u', '
+            txt += ', '
         txt += state
         if self.postal_code:
-            txt += u' %s'%self.postal_code
-        cntry = u'%s'%(self.state.country if self.state and self.state.country else '')
+            txt += ' %s'%self.postal_code
+        cntry = '%s'%(self.state.country if self.state and self.state.country else '')
         if cntry:
-            txt += u', %s'%cntry
+            txt += ', %s'%cntry
         return txt
 
 ##
 ## An address. If for any reason we are unable to find a matching
 ## decomposed address we will store the raw address string in `raw`.
 ##
+@python_2_unicode_compatible
 class Address(models.Model):
     street_number = models.CharField(max_length=20, blank=True)
     route = models.CharField(max_length=100, blank=True)
@@ -208,22 +219,22 @@ class Address(models.Model):
         ordering = ('locality', 'route', 'street_number')
         # unique_together = ('locality', 'route', 'street_number')
 
-    def __unicode__(self):
+    def __str__(self):
         if self.formatted != '':
-            txt = u'%s'%self.formatted
+            txt = '%s'%self.formatted
         elif self.locality:
-            txt = u''
+            txt = ''
             if self.street_number:
-                txt = u'%s'%self.street_number
+                txt = '%s'%self.street_number
             if self.route:
                 if txt:
-                    txt += u' %s'%self.route
-            locality = u'%s'%self.locality
+                    txt += ' %s'%self.route
+            locality = '%s'%self.locality
             if txt and locality:
-                txt += u', '
+                txt += ', '
             txt += locality
         else:
-            txt = u'%s'%self.raw
+            txt = '%s'%self.raw
         return txt
 
     def clean(self):
@@ -275,7 +286,7 @@ class AddressField(models.ForeignKey):
     #     return name, path, args, kwargs
 
     def formfield(self, **kwargs):
-        from forms import AddressField as AddressFormField
+        from .forms import AddressField as AddressFormField
         defaults = dict(form_class=AddressFormField)
         defaults.update(kwargs)
         return super(AddressField, self).formfield(**defaults)
