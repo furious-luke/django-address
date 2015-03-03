@@ -25,7 +25,22 @@ class AddressWidget(forms.TextInput):
                   ('latitude', 'lat'), ('longitude', 'lng')]
 
     class Media:
-        js = ('js/jquery.geocomplete.min.js', 'address/js/address.js')
+        css = {
+            'all': ('css/bootstrap.min.css', 'css/bootstrap-theme.min.css'),
+        }
+        js = ('js/jquery.min.js',
+              'js/bootstrap.min.js',
+              'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+              'js/jquery.geocomplete.min.js',
+              'address/js/address.js')
+
+    def __init__(self, *args, **kwargs):
+        attrs = kwargs.get('attrs', {})
+        classes = attrs.get('class', '')
+        classes += (' ' if classes else '') + 'address'
+        attrs['class'] = classes
+        kwargs['attrs'] = attrs
+        super(AddressWidget, self).__init__(*args, **kwargs)
 
     def render(self, name, value, attrs=None, **kwargs):
 
