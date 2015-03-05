@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.forms import ValidationError, Form
-from address.forms import AddressField
+from address.forms import AddressField, AddressWidget
 
 class TestForm(Form):
     address = AddressField()
@@ -32,3 +32,11 @@ class AddressFieldTestCase(TestCase):
     def test_render(self):
         html = self.form.as_table()
         # TODO: Check html
+
+class AddressWidgetTestCase(TestCase):
+
+    def test_attributes_set_correctly(self):
+        wid = AddressWidget(attrs={'size': '150'})
+        self.assertEqual(wid.attrs['size'], '150')
+        html = wid.render('test', None)
+        self.assertNotEqual(html.find('size="150"'), -1)
