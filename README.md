@@ -167,7 +167,7 @@ The template:
 
 ```html
 <head>
-{% form.media %} <!-- needed for JS/GoogleMaps lookup -->
+{{ form.media }} <!-- needed for JS/GoogleMaps lookup -->
 </head>
 <body>
   {{ form }}
