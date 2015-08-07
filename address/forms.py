@@ -28,8 +28,8 @@ class AddressWidget(forms.TextInput):
         # css = {
         #     'all': ('css/bootstrap.min.css', 'css/bootstrap-theme.min.css'),
         # }
-        js = (#'js/jquery.min.js',
-              #'js/bootstrap.min.js',
+        js = ('js/jquery.min.js',
+              'js/bootstrap.min.js',
               'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
               'js/jquery.geocomplete.min.js',
               'address/js/address.js')
@@ -71,8 +71,11 @@ class AddressWidget(forms.TextInput):
         return mark_safe(unicode('\n'.join(elems)))
 
     def value_from_datadict(self, data, files, name):
+        raw = data.get(name, '')
+        if not raw:
+            return raw
         ad = dict([(c[0], data.get(name + '_' + c[0], '')) for c in self.components])
-        ad['raw'] = data.get(name, '')
+        ad['raw'] = raw
         return ad
 
 class AddressField(forms.ModelChoiceField):

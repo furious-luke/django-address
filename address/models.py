@@ -273,7 +273,7 @@ class AddressField(models.ForeignKey):
     description = 'An address'
 
     def __init__(self, **kwargs):
-        kwargs['to'] = Address
+        kwargs['to'] = 'address.Address'
         super(AddressField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
