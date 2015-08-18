@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-address',
-    version='0.1.2',
+    version='0.1.3',
     author='Luke Hodkinson',
     author_email='furious.luke@gmail.com',
     maintainer='Luke Hodkinson',

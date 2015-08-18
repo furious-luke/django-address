@@ -83,7 +83,7 @@ For example:
 
   class MyModel(models.Model):
     address1 = AddressField()
-    address2 = AddressField(blank=True, null=True)
+    address2 = AddressField(related_name='+', blank=True, null=True)
 ```
 
 ### Setting Values
