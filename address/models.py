@@ -45,6 +45,10 @@ def _to_python(value):
         country_obj = Country.objects.get(name=country)
     except Country.DoesNotExist:
         if country:
+            if len(country_code) > Country._meta.get_field('code').max_length:
+                if country_code != country:
+                    raise ValueError('Invalid country code (too long): %s'%country_code)
+                country_code = ''
             country_obj = Country.objects.create(name=country, code=country_code)
         else:
             country_obj = None
@@ -54,6 +58,10 @@ def _to_python(value):
         state_obj = State.objects.get(name=state, country=country_obj)
     except State.DoesNotExist:
         if state:
+            if len(state_code) > State._meta.get_field('code').max_length:
+                if state_code != state:
+                    raise ValueError('Invalid state code (too long): %s'%state_code)
+                state_code = ''
             state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
         else:
             state_obj = None
