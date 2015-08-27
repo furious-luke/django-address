@@ -45,7 +45,7 @@ class AddressWidget(forms.TextInput):
     def render(self, name, value, attrs=None, **kwargs):
 
         # Can accept None, a dictionary of values or an Address object.
-        if value is None:
+        if value in (None, ''):
             ad = {}
         elif isinstance(value, dict):
             ad = value
