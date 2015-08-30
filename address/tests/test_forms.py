@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.forms import ValidationError, Form
 from address.forms import AddressField, AddressWidget
+from address.models import Address
 
 class TestForm(Form):
     address = AddressField()
@@ -10,6 +11,14 @@ class AddressFieldTestCase(TestCase):
     def setUp(self):
         self.form = TestForm()
         self.field = self.form.base_fields['address']
+        self.missing_state = {
+            'country': 'UK',
+            'locality': 'Somewhere',
+            'postal_code': '34904',
+            'route': 'A street?',
+            'street_number': '3',
+            'raw': '3 A street?, Somewhere, UK',
+        }
 
     def test_to_python_none(self):
         self.assertEqual(self.field.to_python(None), None)
@@ -24,6 +33,11 @@ class AddressFieldTestCase(TestCase):
     def test_to_python_invalid_empty_lat_lng(self):
         self.assertEqual(self.field.to_python({'latitude': ''}), None)
         self.assertEqual(self.field.to_python({'longitude': ''}), None)
+
+    def test_to_python_empty_state(self):
+        val = self.field.to_python(self.missing_state)
+        self.assertTrue(isinstance(val, Address))
+        self.assertNotEqual(val.locality, None)
 
     def test_to_python(self):
         res = self.field.to_python({'raw': 'Someplace'})

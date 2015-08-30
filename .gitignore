@@ -8,4 +8,5 @@ build*
 .sconsign.dblite
 dist
 *.egg-info
-
+db.sqlite3
+environ/
