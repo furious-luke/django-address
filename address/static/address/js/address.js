@@ -1,5 +1,5 @@
 $(function(){
-    $('input.address').each(function(){
+    $('input.address').each( function() {
         var self = $(this);
 	var cmps = $('#' + self.attr('name') + '_components');
 	var fmtd = $('input[name="' + self.attr('name') + '_formatted"]');

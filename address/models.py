@@ -1,4 +1,6 @@
+from six import string_types
 from django.db import models
+from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
 from django.utils.encoding import python_2_unicode_compatible
@@ -13,103 +15,75 @@ if sys.version > '3':
     basestring = (str, bytes)
     unicode = str
 
-__all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
+__all__ = ['Address', 'AddressField']
 
 class InconsistentDictError(Exception):
     pass
 
 def _to_python(value):
-    raw = value.get('raw', '')
-    country = value.get('country', '')
-    country_code = value.get('country_code', '')
-    state = value.get('state', '')
-    state_code = value.get('state_code', '')
-    locality = value.get('locality', '')
-    postal_code = value.get('postal_code', '')
-    street_number = value.get('street_number', '')
-    route = value.get('route', '')
-    formatted = value.get('formatted', '')
-    latitude = value.get('latitude', None)
-    longitude = value.get('longitude', None)
+    """Convert a value to an Address."""
 
-    # If there is no value (empty raw) then return None.
-    if not raw:
+    formatted = value.get('formatted', None)
+    if not formatted:
         return None
 
-    # If we have an inconsistent set of value bail out now.
-    if (country or state or locality) and not (country and state and locality):
+    # Create new components, but don't save them yet.
+    components = value.get('components', [])
+    objs = []
+    kind_table = {}
+    for comp in components:
+        kinds = [Component.KEY_KIND_TABLE[k] for k in comp.get('types', [])]
+        kind = reduce(lambda x,y: x|y, kinds, 0)
+        short_name = comp.get('short_name', '')
+        long_name = comp.get('long_name', '')
+        obj = Component(kind=kind, short_name=short_name, long_name=long_name)
+        objs.append((obj, kinds))
+        kind_table.update(dict([(k, obj) for k in kinds]))
+
+    # If there is no country then what is this thing?
+    if Component.KIND_COUNTRY not in kind_table:
         raise InconsistentDictError
 
-    # Handle the country.
-    try:
-        country_obj = Country.objects.get(name=country)
-    except Country.DoesNotExist:
-        if country:
-            if len(country_code) > Country._meta.get_field('code').max_length:
-                if country_code != country:
-                    raise ValueError('Invalid country code (too long): %s'%country_code)
-                country_code = ''
-            country_obj = Country.objects.create(name=country, code=country_code)
-        else:
-            country_obj = None
+    # Organise the components into a hierarchy.
+    for obj, kinds in objs:
+        parent = None
+        while not parent and kinds:
+            kinds = set(kinds)
+            if Component.KIND_COUNTRY in kinds:
+                kinds.remove(Component.KIND_COUNTRY)
+            for kind in kinds:
+                if kind in kind_table:
+                    parent = kind_table[kind]
+                    break
+            if not parent:
+                kinds = sum([hierarchy.get(k, []) for k in kinds], [])
+        if not parent:
+            parent = kind_table[Component.KIND_COUNTRY]
+        obj.parent = parent
 
-    # Handle the state.
-    try:
-        state_obj = State.objects.get(name=state, country=country_obj)
-    except State.DoesNotExist:
-        if state:
-            if len(state_code) > State._meta.get_field('code').max_length:
-                if state_code != state:
-                    raise ValueError('Invalid state code (too long): %s'%state_code)
-                state_code = ''
-            state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
-        else:
-            state_obj = None
+    # Find the lowest address components.
+    roots = set([o[0] for o in objs])
+    for obj, kinds in objs:
+        if obj.parent:
+            roots.remove(obj.parent)
 
-    # Handle the locality.
-    try:
-        locality_obj = Locality.objects.get(name=locality, state=state_obj)
-    except Locality.DoesNotExist:
-        if locality:
-            locality_obj = Locality.objects.create(name=locality, postal_code=postal_code, state=state_obj)
-        else:
-            locality_obj = None
+    # Save the objects top-down.
+    def _save(obj):
+        if obj.parent:
+            _save(obj.parent)
+        obj.save()
+    for root in roots:
+        _save(root)
 
-    # Handle the address.
-    try:
-        if not (street_number or route or locality):
-            address_obj = Address.objects.get(raw=raw)
-        else:
-            address_obj = Address.objects.get(
-                street_number=street_number,
-                route=route,
-                locality=locality_obj
-            )
-    except Address.DoesNotExist:
-        address_obj = Address(
-            street_number=street_number,
-            route=route,
-            raw=raw,
-            locality=locality_obj,
-            formatted=formatted,
-            latitude=latitude,
-            longitude=longitude,
-        )
+    # Now create the address object.
+    lat = value.get('geometry', {}).get('location', {}).get('lat', None)
+    lng = value.get('geometry', {}).get('location', {}).get('lng', None)
+    obj = Address.create(formatted=formatted, components=roots, latitude=lat, longitude=lng)
 
-        # If "formatted" is empty try to construct it from other values.
-        if not address_obj.formatted:
-            address_obj.formatted = unicode(address_obj)
+    return obj
 
-        # Need to save.
-        address_obj.save()
-
-    # Done.
-    return address_obj
-
-##
-## Convert a dictionary to an address.
-##
 def to_python(value):
+    """Convert a value to an Address."""
 
     # Keep `None`s.
     if value is None:
@@ -119,16 +93,13 @@ def to_python(value):
     if isinstance(value, Address):
         return value
 
-    # If we have an integer, assume it is a model primary key. This is mostly for
-    # Django being a cunt.
+    # If we have an integer, assume it is a model primary key.
     elif isinstance(value, (int, long)):
-        return value
+        return Address.objects.get(pk=value)
 
     # A string is considered a raw value.
-    elif isinstance(value, basestring):
-        obj = Address(raw=value)
-        obj.save()
-        return obj
+    elif isinstance(value, string_types):
+        return Address(formatted=value)
 
     # A dictionary of named address components.
     elif isinstance(value, dict):
@@ -137,139 +108,195 @@ def to_python(value):
         try:
             return _to_python(value)
         except InconsistentDictError:
-            return Address.objects.create(raw=value['raw'])
+            formatted = value.get('formatted_address', None)
+            if formatted:
+                return Address.objects.create(formatted=formatted)
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')
 
-##
-## A country.
-##
 @python_2_unicode_compatible
-class Country(models.Model):
-    name = models.CharField(max_length=40, unique=True, blank=True)
-    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
+class Component(models.Model):
+    """An address component."""
 
-    class Meta:
-        verbose_name_plural = 'Countries'
-        ordering = ('name',)
+    KIND_STREET_ADDRESS  = 1 << 0 # 'SA'
+    KIND_ROUTE           = 1 << 1 # 'RO'
+    KIND_INTERSECTION    = 1 << 2 # 'IN'
+    KIND_POLITICAL       = 1 << 3 # 'PO'
+    KIND_COUNTRY         = 1 << 4 # 'CO'
+    KIND_AAL1            = 1 << 5 # 'A1'
+    KIND_AAL2            = 1 << 6 # 'A2'
+    KIND_AAL3            = 1 << 7 # 'A3'
+    KIND_AAL4            = 1 << 8 # 'A4'
+    KIND_AAL5            = 1 << 9 # 'A5'
+    KIND_COLLOQUIAL_AREA = 1 << 10 # 'CA'
+    KIND_LOCALITY        = 1 << 11 # 'LO'
+    KIND_WARD            = 1 << 12 # 'WA'
+    KIND_SUBLOCALITY     = 1 << 13 # 'SL'
+    KIND_NEIGHBORHOOD    = 1 << 14 # 'NE'
+    KIND_PREMISE         = 1 << 15 # 'PR'
+    KIND_SUBPREMISE      = 1 << 16 # 'SP'
+    KIND_POSTAL_CODE     = 1 << 17 # 'PC'
+    KIND_NATURAL_FEATURE = 1 << 18 # 'NF'
+    KIND_AIRPORT         = 1 << 19 # 'AI'
+    KIND_PARK            = 1 << 20 # 'PA'
+    KIND_POI             = 1 << 21 # 'PI'
+    KIND_FLOOR           = 1 << 22 # 'FL'
+    KIND_ESTABLISHMENT   = 1 << 23 # 'ES'
+    KIND_PARKING         = 1 << 24 # 'PK'
+    KIND_POST_BOX        = 1 << 25 # 'PB'
+    KIND_POSTAL_TOWN     = 1 << 26 # 'PT'
+    KIND_ROOM            = 1 << 27 # 'RM'
+    KIND_STREET_NUMBER   = 1 << 28 # 'SN'
+    KIND_BUS_STATION     = 1 << 29 # 'BS'
+    KIND_TRAIN_STATION   = 1 << 30 # 'TS'
+    KIND_TRANSIT_STATION = 1 << 31 # 'TR'
+    KIND_KEY_TABLE = {
+        KIND_STREET_ADDRESS: 'street_address',
+        KIND_ROUTE: 'route',
+        KIND_INTERSECTION: 'intersection',
+        KIND_POLITICAL: 'political',
+        KIND_COUNTRY: 'country',
+        KIND_AAL1: 'administrative_area_level_1',
+        KIND_AAL2: 'administrative_area_level_2',
+        KIND_AAL3: 'administrative_area_level_3',
+        KIND_AAL4: 'administrative_area_level_4',
+        KIND_AAL5: 'administrative_area_level_5',
+        KIND_COLLOQUIAL_AREA: 'colloquial_area',
+        KIND_LOCALITY: 'locality',
+        KIND_WARD: 'ward',
+        KIND_SUBLOCALITY: 'sublocality',
+        KIND_NEIGHBORHODD: 'neighborhood',
+        KIND_PREMISE: 'premise',
+        KIND_SUBPREMISE: 'subpremise',
+        KIND_POSTAL_CODE: 'postal_code',
+        KIND_NATURAL_FEATURE: 'natural_feature',
+        KIND_AIRPORT: 'airport',
+        KIND_PARK: 'park',
+        KIND_POI: 'point_of_interest',
+        KIND_FLOOR: 'floor',
+        KIND_ESTABLISHMENT: 'establishment',
+        KIND_PARKING: 'parking',
+        KIND_POST_BOX: 'post_box',
+        KIND_POSTAL_TOWN: 'postal_town',
+        KIND_ROOM: 'room',
+        KIND_STREET_NUMBER: 'street_number',
+        KIND_BUS_STATION: 'bus_station',
+        KIND_TRAIN_STATION: 'train_station',
+        KIND_TRANSIT_STATION: 'transit_station',
+    }
+    KEY_KIND_TABLE = dict([(v, k) for k, v in KIND_KEY_TABLE.iteritems()])
+    # KIND_CHOICES = [
+    #     (KIND_STREET_ADDRESS, 'Street address'),
+    #     (KIND_ROUTE, 'Route'),
+    #     (KIND_INTERSECTION, 'Intersection'),
+    #     (KIND_POLITICAL, 'Political'),
+    #     (KIND_COUNTRY, 'Country'),
+    #     (KIND_AAL1, 'Administrative area level 1'),
+    #     (KIND_AAL2, 'Administrative area level 2'),
+    #     (KIND_AAL3, 'Administrative area level 3'),
+    #     (KIND_AAL4, 'Administrative area level 4'),
+    #     (KIND_AAL5, 'Administrative area level 5'),
+    #     (KIND_COLLOQUIAL_AREA, 'Colloquial area'),
+    #     (KIND_LOCALITY, 'Locality'),
+    #     (KIND_WARD, 'Ward'),
+    #     (KIND_SUBLOCALITY, 'Sublocality'),
+    #     (KIND_NEIGHBORHOOD, 'Neighborhood'),
+    #     (KIND_PREMISE, 'Premise'),
+    #     (KIND_SUBPREMISE, 'Subpremise'),
+    #     (KIND_POSTAL_CODE, 'Postal code'),
+    #     (KIND_NATURAL_FEATURE, 'Natural feature'),
+    #     (KIND_AIRPORT, 'Airport'),
+    #     (KIND_PARK, 'Park'),
+    #     (KIND_POI, 'Point of interest'),
+    #     (KIND_FLOOR, 'Floor'),
+    #     (KIND_ESTABLISHMENT, 'Establishment'),
+    #     (KIND_PARKING, 'Parking'),
+    #     (KIND_POST_BOX, 'Post box'),
+    #     (KIND_POSTAL_TOWN, 'Postal town'),
+    #     (KIND_ROOM, 'Room'),
+    #     (KIND_STREET_NUMBER, 'Street number'),
+    #     (KIND_BUS_STATION, 'Bus station'),
+    #     (KIND_TRAIN_STATION, 'Train station'),
+    #     (KIND_TRANSIT_STATION, 'Transit station'),
+    # ]
 
-    def __str__(self):
-        return '%s'%(self.name or self.code)
+    parent     = models.ForeignKey('address.Component', related_name='children', blank=True, null=True)
+    kind       = models.PositiveIntegerField()
+    kind_name  = models.CharField(max_length=256, blank=True)
+    long_name  = models.CharField(max_length=256, blank=True)
+    short_name = models.CharField(max_length=10, blank=True)
 
-##
-## A state. Google refers to this as `administration_level_1`.
-##
-@python_2_unicode_compatible
-class State(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    code = models.CharField(max_length=3, blank=True)
-    country = models.ForeignKey(Country, related_name='states')
+    def filter_kind(self, inst, kind):
+        if isinstance(inst, models.Model):
+            inst = inst.objects
+        mask = 0
+        for ii in range(kind.bit_length() - 1, 32):
+            mask &= 1 << ii
+        return inst.annotate(remainder=F(kind)%mask).filter(remainder__gte=kind)
 
-    class Meta:
-        unique_together = ('name', 'country')
-        ordering = ('country', 'name')
+    def get_geocode_entry(self):
+        return {
+            'long_name': self.long_name,
+            'short_name': self.short_name,
+            'types': self.get_keys(),
+        }
 
-    def __str__(self):
-        txt = self.to_str()
-        country = '%s'%self.country
-        if country and txt:
-            txt += ', '
-        txt += country
-        return txt
+    def get_kinds(self):
+        kinds = []
+        for mask in self.KIND_KEY_TABLE.iterkeys():
+            if self.kind & mask:
+                kinds.append(mask)
+        return kinds
 
-    def to_str(self):
-        return '%s'%(self.name or self.code)
+    def get_keys(self):
+        keys = []
+        for mask, key in self.KIND_KEY_TABLE.iteritems():
+            if self.kind & mask:
+                keys.append(key)
+        return keys
 
-##
-## A locality (suburb).
-##
-@python_2_unicode_compatible
-class Locality(models.Model):
-    name = models.CharField(max_length=165, blank=True)
-    postal_code = models.CharField(max_length=10, blank=True)
-    state = models.ForeignKey(State, related_name='localities')
-
-    class Meta:
-        verbose_name_plural = 'Localities'
-        unique_together = ('name', 'state')
-        ordering = ('state', 'name')
-
-    def __str__(self):
-        txt = '%s'%self.name
-        state = self.state.to_str() if self.state else ''
-        if txt and state:
-            txt += ', '
-        txt += state
-        if self.postal_code:
-            txt += ' %s'%self.postal_code
-        cntry = '%s'%(self.state.country if self.state and self.state.country else '')
-        if cntry:
-            txt += ', %s'%cntry
-        return txt
-
-##
-## An address. If for any reason we are unable to find a matching
-## decomposed address we will store the raw address string in `raw`.
-##
 @python_2_unicode_compatible
 class Address(models.Model):
-    street_number = models.CharField(max_length=20, blank=True)
-    route = models.CharField(max_length=100, blank=True)
-    locality = models.ForeignKey(Locality, related_name='addresses', blank=True, null=True)
-    raw = models.CharField(max_length=200)
-    formatted = models.CharField(max_length=200, blank=True)
+    """A model class for an address."""
+
+    formatted = models.CharField(max_length=256)
+    components = models.ManyToManyField(Component)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Addresses'
-        ordering = ('locality', 'route', 'street_number')
-        # unique_together = ('locality', 'route', 'street_number')
 
     def __str__(self):
-        if self.formatted != '':
-            txt = '%s'%self.formatted
-        elif self.locality:
-            txt = ''
-            if self.street_number:
-                txt = '%s'%self.street_number
-            if self.route:
-                if txt:
-                    txt += ' %s'%self.route
-            locality = '%s'%self.locality
-            if txt and locality:
-                txt += ', '
-            txt += locality
-        else:
-            txt = '%s'%self.raw
-        return txt
+        return self.formatted
 
     def clean(self):
-        if not self.raw:
-            raise ValidationError('Addresses may not have a blank `raw` field.')
+        if not self.formatted:
+            raise ValidationError('Addresses must have a value for `formatted`.')
 
-    def as_dict(self):
-        ad = dict(
-            street_number=self.street_number,
-            route=self.route,
-            raw=self.raw,
-            formatted=self.formatted,
-            latitude=self.latitude if self.latitude else '',
-            longitude=self.longitude if self.longitude else '',
-        )
-        if self.locality:
-            ad['locality'] = self.locality.name
-            ad['postal_code'] = self.locality.postal_code
-            if self.locality.state:
-                ad['state'] = self.locality.state.name
-                ad['state_code'] = self.locality.state.code
-                if self.locality.state.country:
-                    ad['country'] = self.locality.state.country.name
-                    ad['country_code'] = self.locality.state.country.code
-        return ad
+    def get_geocode(self):
+        return {
+            'address_components': [c.get_geocode_entry() for c in self.get_components()],
+            'formatted_address': self.formatted,
+            'geometry': {
+                'location': {
+                    'lat': self.latitude,
+                    'lng': self.longitude,
+                }
+            }
+        }
+
+    def get_components(self):
+        return set(self.components.all().select_related())
 
 class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
+    """Override setting an address field.
+
+    In order to call our custimised `to_python` routine each time a value
+    is assigned to and AddressField we need to modify the descriptor
+    class assigned to the model.
+    """
 
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
@@ -278,6 +305,12 @@ class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
 ## A field for addresses in other models.
 ##
 class AddressField(models.ForeignKey):
+    """An address model field.
+
+    The address is stored as a foreign-key; AddressField inherits from
+    ForeignKey but forces the related field to be `address.Address`.
+    """
+
     description = 'An address'
 
     def __init__(self, **kwargs):

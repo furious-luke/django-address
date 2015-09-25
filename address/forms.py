@@ -1,5 +1,5 @@
+import json
 from django import forms
-# from uni_form.helpers import *
 from django.utils.safestring import mark_safe
 from .models import Address, to_python
 
@@ -16,23 +16,17 @@ if sys.version > '3':
 __all__ = ['AddressWidget', 'AddressField']
 
 class AddressWidget(forms.TextInput):
-    components = [('country', 'country'), ('country_code', 'country_short'),
-                  ('locality', 'locality'), ('postal_code', 'postal_code'),
-                  ('route', 'route'), ('street_number', 'street_number'),
-                  ('state', 'administrative_area_level_1'),
-                  ('state_code', 'administrative_area_level_1_short'),
-                  ('formatted', 'formatted_address'),
-                  ('latitude', 'lat'), ('longitude', 'lng')]
 
     class Media:
         # css = {
         #     'all': ('css/bootstrap.min.css', 'css/bootstrap-theme.min.css'),
         # }
-        js = ('js/jquery.min.js',
-              'js/bootstrap.min.js',
-              'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
-              'js/jquery.geocomplete.min.js',
-              'address/js/address.js')
+        # js = ('js/jquery.min.js',
+        #       'js/bootstrap.min.js',
+        #       'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+        #       'js/jquery.geocomplete.min.js',
+        #       'address/js/address.js')
+        js = ('address/js/address.js',)
 
     def __init__(self, *args, **kwargs):
         attrs = kwargs.get('attrs', {})
@@ -44,39 +38,34 @@ class AddressWidget(forms.TextInput):
 
     def render(self, name, value, attrs=None, **kwargs):
 
-        # Can accept None, a dictionary of values or an Address object.
+        # Can accept None, a dictionary of values, a PK, or an Address object.
         if value in (None, ''):
             ad = {}
         elif isinstance(value, dict):
             ad = value
         elif isinstance(value, (int, long)):
             ad = Address.objects.get(pk=value)
-            ad = ad.as_dict()
+            ad = ad.get_geocode()
         else:
-            ad = value.as_dict()
+            ad = value.get_geocode()
 
-        # Generate the elements. We should create a suite of hidden fields
-        # For each individual component, and a visible field for the raw
-        # input. Begin by generating the raw input.
-        elems = [super(AddressWidget, self).render(name, ad.get('formatted', None), attrs, **kwargs)]
+        # Begin by generating the visible formatted address.
+        elems = [super(AddressWidget, self).render(name, ad.get('formatted_address', None), attrs, **kwargs)]
 
-        # Now add the hidden fields.
-        elems.append('<div id="%s_components">'%name)
-        for com in self.components:
-            elems.append('<input type="hidden" name="%s_%s" data-geo="%s" value="%s" />'%(
-                name, com[0], com[1], ad.get(com[0], ''))
-            )
-        elems.append('</div>')
+        # Generate the hidden JSON field.
+        elems.append('<input type="hidden" name="%s_geocode" value="%s" />'%(name, json.dumps(ad)))
 
         return mark_safe(unicode('\n'.join(elems)))
 
     def value_from_datadict(self, data, files, name):
-        raw = data.get(name, '')
-        if not raw:
-            return raw
-        ad = dict([(c[0], data.get(name + '_' + c[0], '')) for c in self.components])
-        ad['raw'] = raw
-        return ad
+        formatted = data.get(name, '')
+        try:
+            geo = json.loads(data.get('name_geocode', None))
+            if geo['formatted_address'] != formatted:
+                raise Exception
+        except:
+            geo = {}
+        return geo
 
 class AddressField(forms.ModelChoiceField):
     widget = AddressWidget
@@ -88,12 +77,13 @@ class AddressField(forms.ModelChoiceField):
     def to_python(self, value):
 
         # Treat `None`s and empty strings as empty.
-        if value is None or value == '':
+        if value in (None, ''):
             return None
 
         # Check for garbage in the lat/lng components.
-        for field in ['latitude', 'longitude']:
-            if field in value:
+        geom = value.get('geometry', {}).get('location', {})
+        for field in ('lat', 'lng'):
+            if field in geom:
                 if value[field]:
                     try:
                         value[field] = float(value[field])
