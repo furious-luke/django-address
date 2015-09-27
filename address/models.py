@@ -15,10 +15,12 @@ if sys.version > '3':
     basestring = (str, bytes)
     unicode = str
 
-__all__ = ['Address', 'AddressField']
+__all__ = ['Component', 'Address', 'AddressField']
+
 
 class InconsistentDictError(Exception):
     pass
+
 
 def _to_python(value):
     """Convert a value to an Address."""
@@ -82,6 +84,7 @@ def _to_python(value):
 
     return obj
 
+
 def to_python(value):
     """Convert a value to an Address."""
 
@@ -114,6 +117,7 @@ def to_python(value):
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')
+
 
 @python_2_unicode_compatible
 class Component(models.Model):
@@ -166,7 +170,7 @@ class Component(models.Model):
         KIND_LOCALITY: 'locality',
         KIND_WARD: 'ward',
         KIND_SUBLOCALITY: 'sublocality',
-        KIND_NEIGHBORHODD: 'neighborhood',
+        KIND_NEIGHBORHOOD: 'neighborhood',
         KIND_PREMISE: 'premise',
         KIND_SUBPREMISE: 'subpremise',
         KIND_POSTAL_CODE: 'postal_code',
@@ -223,17 +227,24 @@ class Component(models.Model):
 
     parent     = models.ForeignKey('address.Component', related_name='children', blank=True, null=True)
     kind       = models.PositiveIntegerField()
-    kind_name  = models.CharField(max_length=256, blank=True)
     long_name  = models.CharField(max_length=256, blank=True)
     short_name = models.CharField(max_length=10, blank=True)
 
-    def filter_kind(self, inst, kind):
+    class Meta:
+        unique_together = ('parent', 'kind', 'long_name')
+
+    def __str__(self):
+        return self.long_name
+
+    @staticmethod
+    def filter_kind(inst, kind):
         if isinstance(inst, models.Model):
             inst = inst.objects
-        mask = 0
-        for ii in range(kind.bit_length() - 1, 32):
-            mask &= 1 << ii
-        return inst.annotate(remainder=F(kind)%mask).filter(remainder__gte=kind)
+        if kind == (1 << 31):
+            return inst.filter(kind__gte=kind)
+        else:
+            mask = kind << 1
+            return inst.annotate(remainder=F('kind')%mask).filter(remainder__gte=kind)
 
     def get_geocode_entry(self):
         return {
@@ -255,6 +266,7 @@ class Component(models.Model):
             if self.kind & mask:
                 keys.append(key)
         return keys
+
 
 @python_2_unicode_compatible
 class Address(models.Model):
@@ -290,6 +302,7 @@ class Address(models.Model):
     def get_components(self):
         return set(self.components.all().select_related())
 
+
 class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
     """Override setting an address field.
 
@@ -301,9 +314,7 @@ class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
 
-##
-## A field for addresses in other models.
-##
+
 class AddressField(models.ForeignKey):
     """An address model field.
 
