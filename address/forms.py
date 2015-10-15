@@ -25,12 +25,8 @@ class AddressWidget(forms.TextInput):
                   ('latitude', 'lat'), ('longitude', 'lng')]
 
     class Media:
-        # css = {
-        #     'all': ('css/bootstrap.min.css', 'css/bootstrap-theme.min.css'),
-        # }
-        js = ('js/jquery.min.js',
-              'js/bootstrap.min.js',
-              'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+        js = (
+              '//maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
               'js/jquery.geocomplete.min.js',
               'address/js/address.js')
 
