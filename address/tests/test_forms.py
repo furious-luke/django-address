@@ -3,8 +3,10 @@ from django.forms import ValidationError, Form
 from address.forms import AddressField, AddressWidget
 from address.models import Address
 
+
 # class TestForm(Form):
 #     address = AddressField()
+
 
 # class AddressFieldTestCase(TestCase):
 

@@ -6,26 +6,13 @@ from .models import Address, to_python
 import logging
 logger = logging.getLogger(__name__)
 
-# Python 3 fixes.
-import sys
-if sys.version > '3':
-    long = int
-    basestring = (str, bytes)
-    unicode = str
 
 __all__ = ['AddressWidget', 'AddressField']
+
 
 class AddressWidget(forms.TextInput):
 
     class Media:
-        # css = {
-        #     'all': ('css/bootstrap.min.css', 'css/bootstrap-theme.min.css'),
-        # }
-        # js = ('js/jquery.min.js',
-        #       'js/bootstrap.min.js',
-        #       'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
-        #       'js/jquery.geocomplete.min.js',
-        #       'address/js/address.js')
         js = ('address/js/address.js',)
 
     def __init__(self, *args, **kwargs):
@@ -66,6 +53,7 @@ class AddressWidget(forms.TextInput):
         except:
             geo = {}
         return geo
+
 
 class AddressField(forms.ModelChoiceField):
     widget = AddressWidget

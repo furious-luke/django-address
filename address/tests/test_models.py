@@ -4,15 +4,30 @@ from django.core.exceptions import ValidationError
 from django.db.models import Model
 from django.conf import settings
 from address.models import *
-from address.models import to_python
+from address.models import to_python, _to_python, InconsistentDictError
+from address.kinds import *
+
 
 def au_factory():
-    Component.objects.create(kind=Component.KIND_COUNTRY, long_name='Australia', short_name='AU')
-    Component.objects.create(kind=Component.KIND_AAL1 | Component.KIND_POLITICAL, long_name='Victoria', short_name='Vic')
-    Component.objects.create(kind=Component.KIND_AAL1, long_name='Tasmania', short_name='Tas')
+    au = Component.objects.create(kind=KIND_COUNTRY, long_name='Australia', short_name='AU')
+    vic = Component.objects.create(kind=KIND_AAL1 | KIND_POLITICAL, long_name='Victoria', short_name='Vic', parent=au)
+    Component.objects.create(kind=KIND_AAL1, long_name='Tasmania', short_name='Tas', parent=au)
+    nc = Component.objects.create(kind=KIND_LOCALITY, long_name='Northcote', parent=vic)
+    pc = Component.objects.create(kind=KIND_POSTAL_CODE, long_name='3070', parent=vic)
+    return Component.objects.create(kind=KIND_STREET_ADDRESS, long_name='2 Something Avenue', parent=pc)
+
 
 def nz_factory():
-    return Component.objects.create(kind=Component.KIND_COUNTRY, long_name='New Zealand', short_name='NZ')
+    return Component.objects.create(kind=KIND_COUNTRY, long_name='New Zealand', short_name='NZ')
+
+
+def au_address_factory():
+    com = au_factory()
+    addr = Address(formatted='2 Something Avenue, Northcote 3070, Victoria, Australia', latitude=1.1, longitude=2.2)
+    addr.save()
+    addr.components.add(com)
+    return addr
+
 
 class ComponentTestCase(TestCase):
 
@@ -25,17 +40,17 @@ class ComponentTestCase(TestCase):
 
     def test_filter_kind_on_country(self):
         au_factory()
-        res = [r.long_name for r in Component.filter_kind(Component.objects, Component.KIND_COUNTRY)]
+        res = [r.long_name for r in Component.filter_kind(Component.objects, KIND_COUNTRY)]
         self.assertEqual(res, ['Australia'])
 
     def test_filter_kind_on_aal1(self):
         au_factory()
-        res = [r.long_name for r in Component.filter_kind(Component.objects, Component.KIND_AAL1)]
+        res = [r.long_name for r in Component.filter_kind(Component.objects, KIND_AAL1)]
         self.assertEqual(res, ['Victoria', 'Tasmania'])
 
     def test_filter_kind_on_political(self):
         au_factory()
-        res = [r.long_name for r in Component.filter_kind(Component.objects, Component.KIND_POLITICAL)]
+        res = [r.long_name for r in Component.filter_kind(Component.objects, KIND_POLITICAL)]
         self.assertEqual(res, ['Victoria'])
 
     def test_get_geocode_entry(self):
@@ -47,7 +62,217 @@ class ComponentTestCase(TestCase):
             'types': ['political', 'administrative_area_level_1'],
         })
 
-# class AddressTestCase(TestCase):
+
+class AddressTestCase(TestCase):
+
+    def test_clean_throws_without_formatted(self):
+        addr = Address()
+        self.assertRaises(ValidationError, addr.clean)
+
+    def test_clean_accepts_formatted(self):
+        addr = Address(formatted='anything')
+        addr.clean()
+
+    def test_get_geocode_has_components(self):
+        addr = au_address_factory()
+        geo = addr.get_geocode()
+        self.assertEqual(
+            geo.get('address_components', None),
+            [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia'
+                },
+                {
+                    'types': ['political', 'administrative_area_level_1'],
+                    'short_name': 'Vic',
+                    'long_name': 'Victoria'
+                },
+                {
+                    'types': ['postal_code'],
+                    'short_name': '',
+                    'long_name': '3070'
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Something Avenue'
+                },
+            ]
+        )
+
+    def test_get_geocode_has_formatted_address(self):
+        addr = au_address_factory()
+        geo = addr.get_geocode()
+        self.assertEqual(geo.get('formatted_address', None), '2 Something Avenue, Northcote 3070, Victoria, Australia')
+
+    def test_get_geocode_has_geometry(self):
+        addr = au_address_factory()
+        geo = addr.get_geocode()
+        self.assertEqual(
+            geo.get('geometry', None),
+            {
+                'location': {
+                    'lat': 1.1,
+                    'lng': 2.2,
+                }
+            }
+        )
+
+    def test_get_components_includes_related(self):
+        addr = au_address_factory()
+        self.assertEqual(len(addr.get_components()), 4)
+
+
+class ToPythonTestCase(TestCase):
+
+    def test_none_returns_none(self):
+        self.assertEqual(to_python(None), None)
+
+    def test_address_returns_address(self):
+        addr = au_address_factory()
+        self.assertEqual(to_python(addr), addr)
+
+    def test_integer_treated_as_pk(self):
+        addr = au_address_factory()
+        self.assertEqual(to_python(addr.pk), addr)
+
+    def test_string_treated_as_formatted(self):
+        addr = to_python('hello world')
+        self.assertEqual(addr.formatted, 'hello world')
+
+    def test_inconsistent_dict_uses_formatted(self):
+        addr = to_python({'street_address': 'hello world', 'formatted_address': 'full hello world'})
+        self.assertEqual(addr.formatted, 'full hello world')
+
+    def test_no_formatted_raises_error(self):
+        self.assertRaises(ValidationError, to_python, {'street_address': 'hello world'})
+
+
+class _ToPythonTestCase(TestCase):
+
+    def test_no_country_raises_error(self):
+        self.assertRaises(InconsistentDictError, _to_python, {})
+
+    def test_hierarchy_is_created(self):
+        addr = _to_python({
+            'formatted_address': 'test',
+            'components': [
+                {
+                    'types': ['administrative_area_level_1', 'political'],
+                    'short_name': 'Vic',
+                    'long_name': 'Victoria',
+                },
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+        self.assertEqual(len(addr.components.all()), 1)
+        com = addr.components.all()[0]
+        self.assertEqual(com.long_name, '2 Blah Street')
+        com = com.parent
+        self.assertEqual(com.long_name, 'Victoria')
+        com = com.parent
+        self.assertEqual(com.long_name, 'Australia')
+        com = com.parent
+        self.assertEqual(com, None)
+
+    def test_root_components_are_found(self):
+        addr = _to_python({
+            'formatted_address': 'test',
+            'components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '5 Another Ave',
+                }
+            ]
+        })
+        self.assertEqual(len(addr.components.all()), 2)
+        self.assertEqual(
+            set([c.long_name for c in addr.components.all()]),
+            set(['2 Blah Street', '5 Another Ave'])
+        )
+
+    def test_formatted_address_is_used(self):
+        addr = _to_python({
+            'formatted_address': 'test',
+            'components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+        self.assertEqual(addr.formatted, 'test')
+
+    def test_geometry_is_used(self):
+        addr = _to_python({
+            'formatted_address': 'test',
+            'components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ],
+            'geometry': {
+                'location': {
+                    'lat': 1.1,
+                    'lng': 2.2,
+                }
+            }
+        })
+        self.assertEqual(addr.latitude, 1.1)
+        self.assertEqual(addr.longitude, 2.2)
+
+    def test_missing_short_and_long_name_raises_error(self):
+        self.assertRaises(InconsistentDictError, _to_python, {
+            'formatted_address': 'test',
+            'components': [
+                {
+                    'types': ['country'],
+                    'short_name': '',
+                    'long_name': '',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+
 
 #     def setUp(self):
 #         self.au = Country.objects.create(name='Australia', code='AU')
