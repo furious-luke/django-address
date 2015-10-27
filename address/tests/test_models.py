@@ -273,6 +273,15 @@ class _ToPythonTestCase(TestCase):
             ]
         })
 
+    def test_components_not_duplicated(self):
+        self.assertTrue(False)
+
+    def test_addresses_not_duplicated(self):
+        self.assertTrue(False)
+
+    def test_empty_addresses_throw_error(self):
+        self.assertTrue(False)
+
 
 #     def setUp(self):
 #         self.au = Country.objects.create(name='Australia', code='AU')
