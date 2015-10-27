@@ -18,7 +18,7 @@ def convert_addresses(apps, schema_editor):
         new_addr = location.raw['formatted_address']
         if orig_addr != new_addr:
             raise Exception('Converted address does not match original: %s -- %s'%(repr(orig_addr), repr(new_addr)))
-        addr = to_python(location.raw, obj)
+        addr = to_python(location.raw, obj, apps.get_model('address.component'))
 
 
 class Migration(migrations.Migration):

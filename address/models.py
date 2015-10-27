@@ -25,8 +25,12 @@ class InconsistentDictError(Exception):
     pass
 
 
-def _to_python(value, model=None):
+def _to_python(value, model=None, component_model=None):
     """Convert a value to an Address."""
+
+    # Prepare a default Component.
+    if component_model is None:
+        component_model = Component
 
     # Get the formatted value.
     formatted = value.get('formatted_address', None)
@@ -42,7 +46,7 @@ def _to_python(value, model=None):
         long_name = comp.get('long_name', '')
         if not short_name and not long_name:
             raise InconsistentDictError
-        obj, created = Component.objects.get_or_create(kind=kind, short_name=short_name, long_name=long_name)
+        obj, created = component_model.objects.get_or_create(kind=kind, short_name=short_name, long_name=long_name)
         objs.append((obj, kinds))
         kind_table.update(dict([(k, obj) for k in kinds]))
 
@@ -105,7 +109,7 @@ def _to_python(value, model=None):
     return obj
 
 
-def to_python(value, model=None):
+def to_python(value, model=None, component_model=None):
     """Convert a value to an Address."""
 
     # Keep `None`s.
@@ -129,7 +133,7 @@ def to_python(value, model=None):
 
         # Attempt a conversion.
         try:
-            return _to_python(value, model)
+            return _to_python(value, model, component_model)
         except InconsistentDictError:
             formatted = value.get('formatted_address', None)
             if formatted:
