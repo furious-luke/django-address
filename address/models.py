@@ -32,7 +32,7 @@ def _to_python(value):
     formatted = value.get('formatted_address', None)
 
     # Create new components, but don't save them yet.
-    components = value.get('components', [])
+    components = value.get('address_components', [])
     objs = []
     kind_table = {}
     for comp in components:
@@ -42,8 +42,7 @@ def _to_python(value):
         long_name = comp.get('long_name', '')
         if not short_name and not long_name:
             raise InconsistentDictError
-        obj = Component(kind=kind, short_name=short_name, long_name=long_name)
-        obj.save() # need to do this to hash the object
+        obj, created = Component.objects.get_or_create(kind=kind, short_name=short_name, long_name=long_name)
         objs.append((obj, kinds))
         kind_table.update(dict([(k, obj) for k in kinds]))
 
@@ -53,6 +52,11 @@ def _to_python(value):
 
     # Organise the components into a hierarchy.
     for obj, kinds in objs:
+
+        # If the parent is already set don't overwrite.
+        if obj.parent is not None:
+            continue
+
         if KIND_COUNTRY in kinds:
             continue
         orig_kinds = set(kinds + [KIND_COUNTRY])
@@ -133,7 +137,7 @@ class Component(models.Model):
     """An address component."""
 
     parent     = models.ForeignKey('address.Component', related_name='children', blank=True, null=True)
-    kind       = models.PositiveIntegerField()
+    kind       = models.BigIntegerField()
     long_name  = models.CharField(max_length=256, blank=True)
     short_name = models.CharField(max_length=10, blank=True)
 

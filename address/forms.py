@@ -13,7 +13,7 @@ __all__ = ['AddressWidget', 'AddressField']
 class AddressWidget(forms.TextInput):
 
     class Media:
-        js = ('address/js/address.js',)
+        js = ('address/js/jquery.geocomplete.js', 'address/js/address.js')
 
     def __init__(self, *args, **kwargs):
         attrs = kwargs.get('attrs', {})
@@ -40,16 +40,13 @@ class AddressWidget(forms.TextInput):
         elems = [super(AddressWidget, self).render(name, ad.get('formatted_address', None), attrs, **kwargs)]
 
         # Generate the hidden JSON field.
-        elems.append('<input type="hidden" name="%s_geocode" value="%s" />'%(name, json.dumps(ad)))
+        elems.append('<input type="hidden" id="id_%s_geocode" name="%s_geocode" value="%s" />'%(name, name, json.dumps(ad)))
 
-        return mark_safe(unicode('\n'.join(elems)))
+        return mark_safe('\n'.join(elems))
 
     def value_from_datadict(self, data, files, name):
-        formatted = data.get(name, '')
         try:
-            geo = json.loads(data.get('name_geocode', None))
-            if geo['formatted_address'] != formatted:
-                raise Exception
+            geo = json.loads(data.get(name + '_geocode', None))
         except:
             geo = {}
         return geo
@@ -72,13 +69,13 @@ class AddressField(forms.ModelChoiceField):
         geom = value.get('geometry', {}).get('location', {})
         for field in ('lat', 'lng'):
             if field in geom:
-                if value[field]:
+                if geom[field]:
                     try:
-                        value[field] = float(value[field])
+                        geom[field] = float(geom[field])
                     except:
                         raise forms.ValidationError('Invalid value for %(field)s', code='invalid',
                                                     params={'field': field})
                 else:
-                    value[field] = None
+                    geom[field] = None
 
         return to_python(value)

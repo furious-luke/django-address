@@ -1,4 +1,5 @@
 from six import iteritems
+from collections import OrderedDict
 
 KIND_STREET_ADDRESS  = 1 << 0 # 'SA'
 KIND_ROUTE           = 1 << 1 # 'RO'
@@ -32,41 +33,45 @@ KIND_STREET_NUMBER   = 1 << 28 # 'SN'
 KIND_BUS_STATION     = 1 << 29 # 'BS'
 KIND_TRAIN_STATION   = 1 << 30 # 'TS'
 KIND_TRANSIT_STATION = 1 << 31 # 'TR'
+KIND_SUBLOCALITY_L1  = 1 << 32 # 'SL'
+KIND_POSTAL_CODE_PREFIX = 1 << 33 # 'PC'
 
-KIND_KEY_TABLE = {
-    KIND_STREET_ADDRESS: 'street_address',
-    KIND_ROUTE: 'route',
-    KIND_INTERSECTION: 'intersection',
-    KIND_POLITICAL: 'political',
-    KIND_COUNTRY: 'country',
-    KIND_AAL1: 'administrative_area_level_1',
-    KIND_AAL2: 'administrative_area_level_2',
-    KIND_AAL3: 'administrative_area_level_3',
-    KIND_AAL4: 'administrative_area_level_4',
-    KIND_AAL5: 'administrative_area_level_5',
-    KIND_COLLOQUIAL_AREA: 'colloquial_area',
-    KIND_LOCALITY: 'locality',
-    KIND_WARD: 'ward',
-    KIND_SUBLOCALITY: 'sublocality',
-    KIND_NEIGHBORHOOD: 'neighborhood',
-    KIND_PREMISE: 'premise',
-    KIND_SUBPREMISE: 'subpremise',
-    KIND_POSTAL_CODE: 'postal_code',
-    KIND_NATURAL_FEATURE: 'natural_feature',
-    KIND_AIRPORT: 'airport',
-    KIND_PARK: 'park',
-    KIND_POI: 'point_of_interest',
-    KIND_FLOOR: 'floor',
-    KIND_ESTABLISHMENT: 'establishment',
-    KIND_PARKING: 'parking',
-    KIND_POST_BOX: 'post_box',
-    KIND_POSTAL_TOWN: 'postal_town',
-    KIND_ROOM: 'room',
-    KIND_STREET_NUMBER: 'street_number',
-    KIND_BUS_STATION: 'bus_station',
-    KIND_TRAIN_STATION: 'train_station',
-    KIND_TRANSIT_STATION: 'transit_station',
-}
+KIND_KEY_TABLE = OrderedDict([
+    (KIND_STREET_ADDRESS, 'street_address'),
+    (KIND_ROUTE, 'route'),
+    (KIND_INTERSECTION, 'intersection'),
+    (KIND_POLITICAL, 'political'),
+    (KIND_COUNTRY, 'country'),
+    (KIND_AAL1, 'administrative_area_level_1'),
+    (KIND_AAL2, 'administrative_area_level_2'),
+    (KIND_AAL3, 'administrative_area_level_3'),
+    (KIND_AAL4, 'administrative_area_level_4'),
+    (KIND_AAL5, 'administrative_area_level_5'),
+    (KIND_COLLOQUIAL_AREA, 'colloquial_area'),
+    (KIND_LOCALITY, 'locality'),
+    (KIND_WARD, 'ward'),
+    (KIND_SUBLOCALITY, 'sublocality'),
+    (KIND_SUBLOCALITY_L1, 'sublocality_level_1'),
+    (KIND_NEIGHBORHOOD, 'neighborhood'),
+    (KIND_PREMISE, 'premise'),
+    (KIND_SUBPREMISE, 'subpremise'),
+    (KIND_POSTAL_CODE, 'postal_code'),
+    (KIND_POSTAL_CODE_PREFIX, 'postal_code_prefix'),
+    (KIND_NATURAL_FEATURE, 'natural_feature'),
+    (KIND_AIRPORT, 'airport'),
+    (KIND_PARK, 'park'),
+    (KIND_POI, 'point_of_interest'),
+    (KIND_FLOOR, 'floor'),
+    (KIND_ESTABLISHMENT, 'establishment'),
+    (KIND_PARKING, 'parking'),
+    (KIND_POST_BOX, 'post_box'),
+    (KIND_POSTAL_TOWN, 'postal_town'),
+    (KIND_ROOM, 'room'),
+    (KIND_STREET_NUMBER, 'street_number'),
+    (KIND_BUS_STATION, 'bus_station'),
+    (KIND_TRAIN_STATION, 'train_station'),
+    (KIND_TRANSIT_STATION, 'transit_station'),
+])
 
 KEY_KIND_TABLE = dict([(v, k) for k, v in iteritems(KIND_KEY_TABLE)])
 
