@@ -42,6 +42,11 @@ class Migration(migrations.Migration):
             name='route',
             field=models.CharField(max_length=100, blank=True, null=True),
         ),
+        migrations.AlterField(
+            model_name='address',
+            name='raw',
+            field=models.CharField(max_length=200, blank=True, null=True),
+        ),
         migrations.AlterUniqueTogether(
             name='component',
             unique_together=set([('parent', 'kind', 'long_name')]),
