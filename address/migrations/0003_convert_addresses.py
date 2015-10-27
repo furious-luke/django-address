@@ -8,10 +8,10 @@ from address.models import to_python
 
 
 def convert_addresses(apps, schema_editor):
-    geolocator = GoogleV3()
+    geolocator = GoogleV3(timeout=60)
     address_model = apps.get_model('address.address')
     for obj in address_model.objects.all():
-        orig_addr = str(obj)
+        orig_addr = obj.formatted or obj.raw
         location = geolocator.geocode(orig_addr)
         if not location:
             raise Exception('Failed to convert address: %s'%repr(orig_addr))
