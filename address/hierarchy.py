@@ -2,7 +2,7 @@ from .kinds import *
 
 hierarchy = {
     KIND_STREET_ADDRESS:  [KIND_ROUTE],
-    KIND_ROUTE:           [KIND_SUBPREMISE],
+    KIND_ROUTE:           [KIND_POSTAL_CODE_PREFIX],
     KIND_INTERSECTION:    [KIND_NEIGHBORHOOD],
     KIND_POLITICAL:       [],
     KIND_AAL1:            [KIND_COUNTRY],
