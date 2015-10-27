@@ -25,7 +25,7 @@ class InconsistentDictError(Exception):
     pass
 
 
-def _to_python(value):
+def _to_python(value, model=None):
     """Convert a value to an Address."""
 
     # Get the formatted value.
@@ -91,7 +91,14 @@ def _to_python(value):
     # Now create the address object.
     lat = value.get('geometry', {}).get('location', {}).get('lat', None)
     lng = value.get('geometry', {}).get('location', {}).get('lng', None)
-    obj, created = Address.objects.get_or_create(formatted=formatted, latitude=lat, longitude=lng)
+    if model:
+        obj = model
+        obj.latitude = lat
+        obj.longitude = lng
+        obj.formatted = formatted
+        created = False
+    else:
+        obj, created = Address.objects.get_or_create(formatted=formatted, latitude=lat, longitude=lng)
     obj.components = roots
     obj.save()
 
