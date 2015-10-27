@@ -19,8 +19,6 @@ def convert_addresses(apps, schema_editor):
         if orig_addr != new_addr:
             raise Exception('Converted address does not match original: %s -- %s'%(repr(orig_addr), repr(new_addr)))
         addr = to_python(location.raw)
-        addr.street_number = ''
-        addr.route = ''
         addr.save()
 
 
