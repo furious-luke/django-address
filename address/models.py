@@ -105,7 +105,7 @@ def _to_python(value, model=None):
     return obj
 
 
-def to_python(value):
+def to_python(value, model=None):
     """Convert a value to an Address."""
 
     # Keep `None`s.
@@ -129,7 +129,7 @@ def to_python(value):
 
         # Attempt a conversion.
         try:
-            return _to_python(value)
+            return _to_python(value, model)
         except InconsistentDictError:
             formatted = value.get('formatted_address', None)
             if formatted:
