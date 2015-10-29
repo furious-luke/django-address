@@ -35,6 +35,10 @@ KIND_TRAIN_STATION   = 1 << 30 # 'TS'
 KIND_TRANSIT_STATION = 1 << 31 # 'TR'
 KIND_SUBLOCALITY_L1  = 1 << 32 # 'SL'
 KIND_POSTAL_CODE_PREFIX = 1 << 33 # 'PC'
+KIND_SUBLOCALITY_L2  = 1 << 34 # 'SL'
+KIND_SUBLOCALITY_L3  = 1 << 35 # 'SL'
+KIND_SUBLOCALITY_L4  = 1 << 36 # 'SL'
+KIND_ORDER           = 36
 
 KIND_KEY_TABLE = OrderedDict([
     (KIND_STREET_ADDRESS, 'street_address'),
@@ -52,6 +56,9 @@ KIND_KEY_TABLE = OrderedDict([
     (KIND_WARD, 'ward'),
     (KIND_SUBLOCALITY, 'sublocality'),
     (KIND_SUBLOCALITY_L1, 'sublocality_level_1'),
+    (KIND_SUBLOCALITY_L2, 'sublocality_level_2'),
+    (KIND_SUBLOCALITY_L3, 'sublocality_level_3'),
+    (KIND_SUBLOCALITY_L4, 'sublocality_level_4'),
     (KIND_NEIGHBORHOOD, 'neighborhood'),
     (KIND_PREMISE, 'premise'),
     (KIND_SUBPREMISE, 'subpremise'),

@@ -9,16 +9,18 @@ from address.kinds import *
 
 
 def au_factory():
-    au = Component.objects.create(kind=KIND_COUNTRY, long_name='Australia', short_name='AU')
-    vic = Component.objects.create(kind=KIND_AAL1 | KIND_POLITICAL, long_name='Victoria', short_name='Vic', parent=au)
-    Component.objects.create(kind=KIND_AAL1, long_name='Tasmania', short_name='Tas', parent=au)
-    nc = Component.objects.create(kind=KIND_LOCALITY, long_name='Northcote', parent=vic)
-    pc = Component.objects.create(kind=KIND_POSTAL_CODE, long_name='3070', parent=vic)
-    return Component.objects.create(kind=KIND_STREET_ADDRESS, long_name='2 Something Avenue', parent=pc)
+    au, created = Component.objects.get_or_create(kind=KIND_COUNTRY | KIND_POLITICAL, long_name='Australia', short_name='AU')
+    vic, created = Component.objects.get_or_create(kind=KIND_AAL1 | KIND_POLITICAL, long_name='Victoria', short_name='VIC', parent=au)
+    Component.objects.get_or_create(kind=KIND_AAL1, long_name='Tasmania', short_name='TAS', parent=au)
+    nc, created = Component.objects.get_or_create(kind=KIND_LOCALITY, long_name='Northcote', parent=vic)
+    pc, created = Component.objects.get_or_create(kind=KIND_POSTAL_CODE, long_name='3070', parent=vic)
+    addr, created = Component.objects.get_or_create(kind=KIND_STREET_ADDRESS, long_name='2 Something Avenue', parent=pc)
+    return addr
 
 
 def nz_factory():
-    return Component.objects.create(kind=KIND_COUNTRY, long_name='New Zealand', short_name='NZ')
+    addr, created = Component.objects.get_or_create(kind=KIND_COUNTRY, long_name='New Zealand', short_name='NZ')
+    return addr
 
 
 def au_address_factory():
@@ -45,20 +47,21 @@ class ComponentTestCase(TestCase):
 
     def test_filter_kind_on_aal1(self):
         au_factory()
-        res = [r.long_name for r in Component.filter_kind(Component.objects, KIND_AAL1)]
+        cmps = Component.filter_kind(Component.objects, KIND_AAL1)
+        res = [r.long_name for r in cmps]
         self.assertEqual(res, ['Victoria', 'Tasmania'])
 
     def test_filter_kind_on_political(self):
         au_factory()
         res = [r.long_name for r in Component.filter_kind(Component.objects, KIND_POLITICAL)]
-        self.assertEqual(res, ['Victoria'])
+        self.assertEqual(res, ['Australia', 'Victoria'])
 
     def test_get_geocode_entry(self):
         au_factory()
-        vic = Component.objects.get(long_name='Victoria')
+        vic = Component.objects.filter(long_name='Victoria')[0]
         self.assertEqual(vic.get_geocode_entry(), {
             'long_name': 'Victoria',
-            'short_name': 'Vic',
+            'short_name': 'VIC',
             'types': ['political', 'administrative_area_level_1'],
         })
 
@@ -80,13 +83,13 @@ class AddressTestCase(TestCase):
             geo.get('address_components', None),
             [
                 {
-                    'types': ['country'],
+                    'types': ['political', 'country'],
                     'short_name': 'AU',
                     'long_name': 'Australia'
                 },
                 {
                     'types': ['political', 'administrative_area_level_1'],
-                    'short_name': 'Vic',
+                    'short_name': 'VIC',
                     'long_name': 'Victoria'
                 },
                 {
@@ -138,9 +141,13 @@ class ToPythonTestCase(TestCase):
         addr = au_address_factory()
         self.assertEqual(to_python(addr.pk), addr)
 
-    def test_string_treated_as_formatted(self):
-        addr = to_python('hello world')
-        self.assertEqual(addr.formatted, 'hello world')
+    def test_string_uses_geocoder(self):
+        addr = to_python('95 Clauscen Street, Fitzroy North, Australia')
+        if addr.components:
+            self.assertEqual(addr.formatted, '95 Clauscen St, Fitzroy North VIC 3068, Australia')
+            self.assertEqual(addr.filter_kind(KIND_COUNTRY)[0].long_name, 'Australia')
+        else:
+            self.warning('Geocoding test did not locate address.')
 
     def test_inconsistent_dict_uses_formatted(self):
         addr = to_python({'street_address': 'hello world', 'formatted_address': 'full hello world'})
@@ -158,10 +165,10 @@ class _ToPythonTestCase(TestCase):
     def test_hierarchy_is_created(self):
         addr = _to_python({
             'formatted_address': 'test',
-            'components': [
+            'address_components': [
                 {
                     'types': ['administrative_area_level_1', 'political'],
-                    'short_name': 'Vic',
+                    'short_name': 'VIC',
                     'long_name': 'Victoria',
                 },
                 {
@@ -189,7 +196,7 @@ class _ToPythonTestCase(TestCase):
     def test_root_components_are_found(self):
         addr = _to_python({
             'formatted_address': 'test',
-            'components': [
+            'address_components': [
                 {
                     'types': ['country'],
                     'short_name': 'AU',
@@ -216,7 +223,7 @@ class _ToPythonTestCase(TestCase):
     def test_formatted_address_is_used(self):
         addr = _to_python({
             'formatted_address': 'test',
-            'components': [
+            'address_components': [
                 {
                     'types': ['country'],
                     'short_name': 'AU',
@@ -226,7 +233,7 @@ class _ToPythonTestCase(TestCase):
                     'types': ['street_address'],
                     'short_name': '',
                     'long_name': '2 Blah Street',
-                }
+                },
             ]
         })
         self.assertEqual(addr.formatted, 'test')
@@ -234,7 +241,7 @@ class _ToPythonTestCase(TestCase):
     def test_geometry_is_used(self):
         addr = _to_python({
             'formatted_address': 'test',
-            'components': [
+            'address_components': [
                 {
                     'types': ['country'],
                     'short_name': 'AU',
@@ -259,7 +266,7 @@ class _ToPythonTestCase(TestCase):
     def test_missing_short_and_long_name_raises_error(self):
         self.assertRaises(InconsistentDictError, _to_python, {
             'formatted_address': 'test',
-            'components': [
+            'address_components': [
                 {
                     'types': ['country'],
                     'short_name': '',
@@ -274,13 +281,70 @@ class _ToPythonTestCase(TestCase):
         })
 
     def test_components_not_duplicated(self):
-        self.assertTrue(False)
+        addr0 = _to_python({
+            'formatted_address': 'test0',
+            'address_components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+        addr1 = _to_python({
+            'formatted_address': 'test1',
+            'address_components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '3 Blah Street',
+                }
+            ]
+        })
+        self.assertEqual(addr0.filter_kind(KIND_COUNTRY)[0], addr1.filter_kind(KIND_COUNTRY)[0])
 
     def test_addresses_not_duplicated(self):
-        self.assertTrue(False)
-
-    def test_empty_addresses_throw_error(self):
-        self.assertTrue(False)
+        addr0 = _to_python({
+            'formatted_address': 'test0',
+            'address_components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+        addr1 = _to_python({
+            'formatted_address': 'test0',
+            'address_components': [
+                {
+                    'types': ['country'],
+                    'short_name': 'AU',
+                    'long_name': 'Australia',
+                },
+                {
+                    'types': ['street_address'],
+                    'short_name': '',
+                    'long_name': '2 Blah Street',
+                }
+            ]
+        })
+        self.assertEqual(addr0, addr1)
 
 
 #     def setUp(self):

@@ -1,24 +1,39 @@
 # django-address
 
-## Disclaimer
 
-These instructions are a little shabby, I haven't had a whole lot of time to
-devote to explaining things thoroughly. If you're interested in using this
-but are having trouble getting it setup please feel free to email me at
-furious.luke@gmail.com, I'll assist as best I can and update the instructions
-in the process. Cheers!
+## Description
 
-Also, *there will be bugs*, please let me know of any issues and I'll do my
-best to fix them.
+Version 2 is substantially different to version 1. Originally I'd hoped to be
+able to keep the hierarchy of address components simple, with only countries,
+states, localities, and street addresses. It has become quite clear that this
+will not be possible for international addressing. To cope with the vast
+differences in address structures `django-address` now uses a dynamic
+system for constructing hierarchies based on Google's representation of any
+given address.
+
+
+## Requirements
+
+ * Python 2.7+/3+
+ * Django 1.8+
+ * geopy
+
+`jquery.geocomplete` is also used, but a modified version that passes back
+the raw Google geocode results is supplied.
+
 
 ## Installation
 
-Previously a patch for Django was required to make this app work, but as
-of 1.7 the patch is no longer needed. Installation is now done as per
-usual. The package is installed with:
+Installation can be done manually with:
 
 ```bash
 python setup.py install
+```
+
+or using `pip`:
+
+```bash
+pip install django-address
 ```
 
 Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
@@ -30,50 +45,49 @@ INSTALLED_APPS = (
 )
 ```
 
+
+## Migrating Data
+
+Migrating from version 1 to version 2 should be handled automatically. All address models
+will keep their current primary-keys and each address is checked to confirm that the formatted
+address matches from the original to the new version. However, *I would strongly recommend
+backing everything up before migrating to the new version*.
+
+A migration operation is provided to assist in migrating arbitrary address data to `django-address`.
+
+
+
 ## The Model
 
-The rationale behind the model structure is centered on trying to make
-it easy to enter addresses that may be poorly defined. The model field included
-uses Google Maps API v3 (via the nicely done [geocomplete jquery plugin](http://ubilabs.github.io/geocomplete/)) to
-determine a proper address where possible. However if this isn't possible the
-raw address is used and the user is responsible for breaking the address down
-into components.
+There are two main elements to the address model: the `Address` model and the `Component` model.
 
-It's currently assumed any address is represent-able using four components:
-country, state, locality and street address. In addition, country code, state
-code and postal code may be stored, if they exist.
+`Component` refers to an instance of any of the address component types returned by a Google
+geocoding. Some examples include locality, country, street address, political boundaries, and
+postal codes. Components are organised into hierarchies reflecting the natural structure of
+addresses. For example, administrative boundaries are contained within a country, and neighborhoods
+are contained within administrative boundaries.
 
-There are four Django models used:
+`Address` refers to a unique address, and is given a formatted name, a latitude and longitude, and
+a list of root `Component`s.
 
-```
-  Country
-    name
-    code
 
-  State
-    name
-    code
-    country -> Country
+## The Hierarchy
 
-  Locality
-    name
-    postal_code
-    state -> State
+One of the trickier problems is deciding what hierarchy to apply to the types Google uses
+to classify addresses. The current hierarchy looks like this:
 
-  Address
-    raw
-    street_number
-    route
-    locality -> Locality
-```
+I understand that this hierarchy will probably need to be tweaked to properly cover all the
+various international addressing schemes, so please feel free to open tickets or make
+pull-requests if you should find such a case.
 
-## Address Field
+
+## Usage
+
+### Address Field
 
 To simplify storage and access of addresses, a subclass of `ForeignKey` named
 `AddressField` has been created. It provides an easy method for setting new
 addresses.
-
-### Creation
 
 It can be created using the same optional arguments as a ForeignKey field.
 For example:
@@ -86,64 +100,86 @@ For example:
     address2 = AddressField(related_name='+', blank=True, null=True)
 ```
 
-### Setting Values
-
 Values can be set either by assigning an Address object:
 
 ```python
+  obj = MyModel()
   addr = Address(...)
-  addr.save()
-  obj.address = addr
+  obj.address1 = addr
 ```
 
-Or by supplying a dictionary of address components:
+By supplying a string:
 
 ```python
-  obj.address = {'street_number': '1', route='Somewhere Ave', ...}
+  obj = MyModel()
+  obj.address1 = '180 Collins Street, Melbourne, Australia'
 ```
 
-The structure of the address components is as follows:
+By supplying a primary-key (as an integer):
 
 ```python
-  {
-    'raw': '1 Somewhere Ave, Northcote, VIC 3070, AU',
-    'street_number': '1',
-    'route': 'Somewhere Ave',
-    'locality': 'Northcote',
-    'postal_code': '3070',
-    'state': 'Victoria',
-    'state_code': 'VIC',
-    'country': 'Australia',
-    'country_code': 'AU'
-  }
+  obj = MyModel()
+  obj.address1 = 2
 ```
 
-All except the `raw` field can be omitted. In addition, a raw address may
-be set directly:
+Or by supplying a dictionary representing a Google geocode:
 
 ```python
-obj.address = 'Out the back of 1 Somewhere Ave, Northcote, Australia'
+  obj = MyModel()
+  obj.address = {'formatted_address': ..., 'components': [...]}
 ```
 
-### Getting Values
+Please see the Google documentation for the structure of a geocoded
+location.
+
+Note: Please note that when supplying a string to an address the system
+will attempt to geocode it via Google's service. This is not always possible,
+for example when internet connectivity is down, or if the source of the query
+has exceeded the throttling limit provided by Google. In such cases the
+formatted address will be set to the string value and the components left
+empty, you will need to run the `lookupaddresses` management command at such
+time when the geolocation issue is resolved to lookup the empty components.
 
 When accessed, the address field simply returns an Address object. This way
 all components may be accessed naturally through the object. For example::
 
 ```python
-  route = obj.address.route
-  state_name = obj.address.locality.state.name
+  obj = MyModel()
+  obj.address1 = '180 Collins St, Melbourne, Australia'
+  print(obj.address1.formatted)
+  print(obj.address1.components)
 ```
+
+Root components may be accessed via the `components` many-to-many attribute,
+and a flattened array of components may be accessed via the `get_components`
+method.
+
+The hierarchy of components can be traversed manually by accessing the root
+components from an address and then using the `parent` attribute of each
+component to move to the next level in the hierarchy. Alternatively there is
+a method, `filter_kind` on both the `Address` model and the `Component` model to search
+for a component type in all ancestors::
+
+```python
+  obj = MyModel()
+  obj.address1 = '180 Collins St, Melbourne, Australia'
+  print(obj.address1.filter_kind(KIND_COUNTRY)
+  print(obj.address1.components.all()[0].filter_kind(KIND_NEIGHBORHOOD)
+```
+
+A list of all available component types is available in `address/kinds.py`.
+
 
 ## Forms
 
 Included is a form field for simplifying address entry. A Google maps
 auto-complete is performed in the browser and passed to the view. If
-the lookup fails the raw entered value is used.
+the lookup fails the raw entered value is stored as the `formatted`
+attribute of the address. The user is responsible for correcting the address
+either manually, or by using the management commands to perform a second
+lookup.
 
-TODO: Talk about this more.
-
-## Partial Example
+### Partial Example
 
 The model:
 
@@ -167,7 +203,8 @@ The template:
 
 ```html
 <head>
-{{ form.media }} <!-- needed for JS/GoogleMaps lookup -->
+  <>jquery<>
+  {{ form.media }} <!-- needed for JS/GoogleMaps lookup -->
 </head>
 <body>
   {{ form }}

@@ -5,6 +5,7 @@ from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
 from django.utils.encoding import python_2_unicode_compatible
+from geopy.geocoders import GoogleV3
 from .hierarchy import hierarchy
 from .kinds import *
 
@@ -25,10 +26,11 @@ class InconsistentDictError(Exception):
     pass
 
 
-def _to_python(value, model=None, component_model=None):
+def _to_python(value, instance=None, address_model=None, component_model=None):
     """Convert a value to an Address."""
 
-    # Prepare a default Component.
+    if address_model is None:
+        address_model = Address
     if component_model is None:
         component_model = Component
 
@@ -45,14 +47,14 @@ def _to_python(value, model=None, component_model=None):
         short_name = comp.get('short_name', '')
         long_name = comp.get('long_name', '')
         if not short_name and not long_name:
-            raise InconsistentDictError
+            raise InconsistentDictError('No short name or long name provided.')
         obj, created = component_model.objects.get_or_create(kind=kind, short_name=short_name, long_name=long_name)
         objs.append((obj, kinds))
         kind_table.update(dict([(k, obj) for k in kinds]))
 
     # If there is no country then what is this thing?
     if KIND_COUNTRY not in kind_table:
-        raise InconsistentDictError
+        raise InconsistentDictError('No country given.')
 
     # Organise the components into a hierarchy.
     for obj, kinds in objs:
@@ -95,22 +97,25 @@ def _to_python(value, model=None, component_model=None):
     # Now create the address object.
     lat = value.get('geometry', {}).get('location', {}).get('lat', None)
     lng = value.get('geometry', {}).get('location', {}).get('lng', None)
-    if model:
-        obj = model
+    if instance:
+        obj = instance
         obj.latitude = lat
         obj.longitude = lng
         obj.formatted = formatted
         created = False
     else:
-        obj, created = Address.objects.get_or_create(formatted=formatted, latitude=lat, longitude=lng)
+        obj, created = address_model.objects.get_or_create(formatted=formatted, latitude=lat, longitude=lng)
     obj.components = roots
     obj.save()
 
     return obj
 
 
-def to_python(value, model=None, component_model=None):
+def to_python(value, instance=None, address_model=None, component_model=None, geolocator=None):
     """Convert a value to an Address."""
+
+    if address_model is None:
+        address_model = Address
 
     # Keep `None`s.
     if value is None:
@@ -122,25 +127,44 @@ def to_python(value, model=None, component_model=None):
 
     # If we have an integer, assume it is a model primary key.
     elif isinstance(value, (int, long)):
-        return Address.objects.get(pk=value)
+        return address_model.objects.get(pk=value)
 
-    # A string is considered a raw value.
+    # A string is considered a raw value, try to geocode and
+    # if that fails then store directly.
     elif isinstance(value, string_types):
-        return Address(formatted=value)
+        return lookup(value, instance, address_model, component_model, geolocator)
 
     # A dictionary of named address components.
     elif isinstance(value, dict):
 
         # Attempt a conversion.
         try:
-            return _to_python(value, model, component_model)
+            return _to_python(value, instance, address_model, component_model)
         except InconsistentDictError:
             formatted = value.get('formatted_address', None)
             if formatted:
-                return Address.objects.create(formatted=formatted)
+                return address_model.objects.create(formatted=formatted)
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')
+
+
+def lookup(address, instance=None, address_model=None, component_model=None, geolocator=None):
+    if address_model is None:
+        address_model = Address
+    if geolocator is None:
+        geolocator = GoogleV3(timeout=10)
+    location = geolocator.geocode(address)
+    if not location:
+        if instance is not None:
+            instance.formatted = address
+            instance.components = []
+            instance.latitude = None
+            instance.longitude = None
+            return instance
+        else:
+            return address_model(formatted=address)
+    return to_python(location.raw, instance, component_model)
 
 
 @python_2_unicode_compatible
@@ -162,7 +186,7 @@ class Component(models.Model):
     def filter_kind(inst, kind):
         if isinstance(inst, models.Model):
             inst = inst.objects
-        if kind == (1 << 31):
+        if kind == (1 << KIND_ORDER):
             return inst.filter(kind__gte=kind)
         else:
             mask = kind << 1
@@ -208,6 +232,13 @@ class Address(models.Model):
     def clean(self):
         if not self.formatted:
             raise ValidationError('Addresses must have a value for `formatted`.')
+
+    def filter_kind(self, kind):
+        res = []
+        for com in self.get_components():
+            if com.kind & kind:
+                res.append(com)
+        return res
 
     def get_geocode(self):
         return {
