@@ -21,7 +21,7 @@ def convert_addresses(apps, schema_editor):
         keep = True
         if orig_addr != new_addr:
             six.print_('Converted address does not match original: %s -- %s'%(repr(orig_addr), repr(new_addr)))
-            keep = query_yes_no('Use new value?'):
+            keep = query_yes_no('Use new value?')
         if keep:
             addr = to_python(location.raw, obj, address_model, component_model)
 

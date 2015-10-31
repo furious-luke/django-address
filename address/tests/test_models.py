@@ -13,7 +13,7 @@ def au_factory():
     vic, created = Component.objects.get_or_create(kind=KIND_AAL1 | KIND_POLITICAL, long_name='Victoria', short_name='VIC', parent=au)
     Component.objects.get_or_create(kind=KIND_AAL1, long_name='Tasmania', short_name='TAS', parent=au)
     nc, created = Component.objects.get_or_create(kind=KIND_LOCALITY, long_name='Northcote', parent=vic)
-    pc, created = Component.objects.get_or_create(kind=KIND_POSTAL_CODE, long_name='3070', parent=vic)
+    pc, created = Component.objects.get_or_create(kind=KIND_POSTAL_CODE, long_name='3070', parent=nc)
     addr, created = Component.objects.get_or_create(kind=KIND_STREET_ADDRESS, long_name='2 Something Avenue', parent=pc)
     return addr
 
@@ -93,6 +93,11 @@ class AddressTestCase(TestCase):
                     'long_name': 'Victoria'
                 },
                 {
+                    'types': ['locality'],
+                    'short_name': '',
+                    'long_name': 'Northcote'
+                },
+                {
                     'types': ['postal_code'],
                     'short_name': '',
                     'long_name': '3070'
@@ -125,7 +130,23 @@ class AddressTestCase(TestCase):
 
     def test_get_components_includes_related(self):
         addr = au_address_factory()
-        self.assertEqual(len(addr.get_components()), 4)
+        self.assertEqual(len(addr.get_components()), 5)
+
+    def test_filter_kind(self):
+        addr = au_address_factory()
+        self.assertEqual(addr.filter_kind(KIND_COUNTRY), list(Component.objects.filter(long_name='Australia')))
+        self.assertEqual(addr.filter_kind(KIND_AAL1), [Component.objects.get(long_name='Victoria')])
+
+    def test_filter_level(self):
+        addr = au_address_factory()
+        self.assertEqual(addr.filter_level(0), [Component.objects.get(long_name='Australia')])
+        self.assertEqual(addr.filter_level(1), [Component.objects.get(long_name='Victoria')])
+        self.assertEqual(addr.filter_level(2), [Component.objects.get(long_name='Northcote')])
+        self.assertEqual(addr.filter_level(3), [Component.objects.get(long_name='3070')])
+
+    def test_filter_level_returns_empty_when_too_high(self):
+        addr = au_address_factory()
+        self.assertEqual(addr.filter_level(100), [])
 
 
 class ToPythonTestCase(TestCase):

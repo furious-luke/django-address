@@ -186,6 +186,8 @@ class Component(models.Model):
     def filter_kind(inst, kind):
         if isinstance(inst, models.Model):
             inst = inst.objects
+        elif inst is None:
+            inst = Component.objects
         if kind == (1 << KIND_ORDER):
             return inst.filter(kind__gte=kind)
         else:
@@ -239,6 +241,19 @@ class Address(models.Model):
             if com.kind & kind:
                 res.append(com)
         return res
+
+    def filter_level(self, level):
+        coms = self.get_components()
+        country = self.filter_kind(KIND_COUNTRY)
+        cur_level = list(country)
+        while level:
+            level -= 1
+            next_level = []
+            for c in coms:
+                if c.parent in cur_level:
+                    next_level.append(c)
+            cur_level = next_level
+        return cur_level
 
     def get_geocode(self):
         return {
