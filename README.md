@@ -3,7 +3,7 @@
 
 ## Description
 
-Version 2 is substantially different to version 1. Originally I'd hoped to be
+Version 0.2 is substantially different to version 0.1. Originally I'd hoped to be
 able to keep the hierarchy of address components simple, with only countries,
 states, localities, and street addresses. It has become quite clear that this
 will not be possible for international addressing. To cope with the vast
@@ -49,7 +49,7 @@ INSTALLED_APPS = (
 
 ## Migrating Data
 
-Migrating from version 1 to version 2 should be handled automatically. All address models
+Migrating from version 0.1 to version 0.2 should be handled automatically. All address models
 will keep their current primary-keys and each address is checked to confirm that the formatted
 address matches from the original to the new version. However, *I would strongly recommend
 backing everything up before migrating to the new version*.
