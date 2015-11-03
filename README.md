@@ -31,7 +31,7 @@ Installation can be done manually with:
 python setup.py install
 ```
 
-or using `pip`:
+or using `pip` (*please note this will not be version 0.2 yet*):
 
 ```bash
 pip install django-address
@@ -144,7 +144,7 @@ formatted address will be set to the string value and the components left
 empty, you will need to run the `lookupaddresses` management command at such
 time when the geolocation issue is resolved to lookup the empty components.
 
-When accessed, the address field simply returns an Address object. This way
+When accessed, the address field simply returns an `Address` object. This way
 all components may be accessed naturally through the object. For example::
 
 ```python
