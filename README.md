@@ -55,7 +55,8 @@ address matches from the original to the new version. However, *I would strongly
 backing everything up before migrating to the new version*.
 
 A migration operation is provided to assist in migrating arbitrary address data to `django-address`.
-
+Please see the example in `examples/migrate_existing.py` to see a fictional example of how
+to go about converting your existing addresses.
 
 
 ## The Model
@@ -76,6 +77,8 @@ a list of root `Component`s.
 
 One of the trickier problems is deciding what hierarchy to apply to the types Google uses
 to classify addresses. The current hierarchy looks like this:
+
+TODO: Generate a diagram of the hierarchy.
 
 I understand that this hierarchy will probably need to be tweaked to properly cover all the
 various international addressing schemes, so please feel free to open tickets or make
@@ -168,6 +171,21 @@ for a component type in all ancestors::
   print(obj.address1.components.all()[0].filter_kind(KIND_NEIGHBORHOOD)
 ```
 
+In addition, a specific component level can be extracted from an address.
+Levels are defined such that the country of an address is considered level
+0, the child components of a country are considered level 1, and so on.
+So, to extract the state level component of an Australian address, one
+could use:
+
+```python
+  obj = MyModel()
+  obj.address1 = '180 Collins St, Melbourne, Australia'
+  states = obj.address1.filter_level(1)
+```
+
+Bear in mind that `filter_level` will return a list of matches, as there
+is no guarantee there will be only one component per level.
+
 A list of all available component types is available in `address/kinds.py`.
 
 
@@ -204,7 +222,7 @@ The template:
 
 ```html
 <head>
-  <>jquery<>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
   {{ form.media }} <!-- needed for JS/GoogleMaps lookup -->
 </head>
 <body>

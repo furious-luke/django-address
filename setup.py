@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-address',
-    version='0.1.3',
+    version='0.2',
     author='Luke Hodkinson',
     author_email='furious.luke@gmail.com',
     maintainer='Luke Hodkinson',
@@ -25,7 +25,11 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ['*.txt', '*.js', '*.html', '*.*']},
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'geopy',
+        'six',
+    ],
     zip_safe=False,
 
 )
