@@ -17,6 +17,7 @@ given address.
  * Python 2.7+/3+
  * Django 1.8+
  * geopy
+ * six
 
 `jquery.geocomplete` is also used, but a modified version that passes back
 the raw Google geocode results is supplied.
