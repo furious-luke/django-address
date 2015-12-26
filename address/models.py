@@ -3,7 +3,11 @@ from functools import reduce
 from django.db import models
 from django.db.models import F
 from django.core.exceptions import ValidationError
-from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
+from django.db.models.fields.related import ForeignObject
+try:
+    from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor as ForwardManyToOneDescriptor
+except ImportError:
+    from django.db.models.fields.related import ForwardManyToOneDescriptor
 from django.utils.encoding import python_2_unicode_compatible
 from geopy.geocoders import GoogleV3
 from .hierarchy import hierarchy
@@ -48,7 +52,10 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         long_name = comp.get('long_name', '')
         if not short_name and not long_name:
             raise InconsistentDictError('No short name or long name provided.')
-        obj, created = component_model.objects.get_or_create(kind=kind, short_name=short_name, long_name=long_name)
+
+        # Don't creat the component here. We need the hierarchy to identify
+        # pre-existing components.
+        obj = component_model(kind=kind, short_name=short_name, long_name=long_name)
         objs.append((obj, kinds))
         kind_table.update(dict([(k, obj) for k in kinds]))
 
@@ -78,21 +85,28 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.parent = parent
 
     # Find the lowest address components.
-    roots = set([o[0] for o in objs])
+    roots = [o[0] for o in objs]
     for obj, kinds in objs:
         if obj.parent:
             try:
                 roots.remove(obj.parent)
-            except KeyError:
+            except ValueError:
                 pass
 
-    # Save the objects top-down.
-    def _save(obj):
+    # Save the objects top-down. Calculate the height while we're here.
+    height = 0
+    def _save(obj, h):
         if obj.parent:
-            _save(obj.parent)
-        obj.save()
-    for root in roots:
-        _save(root)
+            obj.parent, h = _save(obj.parent, h + 1)
+        new_obj, created = component_model.objects.get_or_create(
+            kind=obj.kind,
+            short_name=obj.short_name, long_name=obj.long_name,
+            parent=obj.parent
+        )
+        return new_obj, h
+    for ii in range(len(roots)):
+        roots[ii], h = _save(roots[ii], 0)
+        height = max(height, h)
 
     # Now create the address object.
     lat = value.get('geometry', {}).get('location', {}).get('lat', None)
@@ -102,11 +116,21 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.latitude = lat
         obj.longitude = lng
         obj.formatted = formatted
-        created = False
+        obj.height = height
+        obj.components = roots
+        obj.save()
     else:
-        obj, created = address_model.objects.get_or_create(formatted=formatted, latitude=lat, longitude=lng)
-    obj.components = roots
-    obj.save()
+        obj, created = address_model.objects.get_or_create(
+            formatted=formatted,
+            defaults={
+                'latitude': lat,
+                'longitude': lng,
+                'height': height,
+            }
+        )
+        if created:
+            obj.components = roots
+            obj.save()
 
     return obj
 
@@ -163,7 +187,7 @@ def lookup(address, instance=None, address_model=None, component_model=None, geo
             instance.longitude = None
             return instance
         else:
-            return address_model(formatted=address)
+            return address_model.objects.create(formatted=address)
     return to_python(location.raw, instance, component_model)
 
 
@@ -174,7 +198,7 @@ class Component(models.Model):
     parent     = models.ForeignKey('address.Component', related_name='children', blank=True, null=True)
     kind       = models.BigIntegerField()
     long_name  = models.CharField(max_length=256, blank=True)
-    short_name = models.CharField(max_length=10, blank=True)
+    short_name = models.CharField(max_length=256, blank=True)
 
     class Meta:
         unique_together = ('parent', 'kind', 'long_name')
@@ -203,7 +227,7 @@ class Component(models.Model):
 
     def get_kinds(self):
         kinds = []
-        for mask in KIND_KEY_TABLE.iterkeys():
+        for mask in KIND_KEY_TABLE.keys():
             if self.kind & mask:
                 kinds.append(mask)
         return kinds
@@ -222,6 +246,7 @@ class Address(models.Model):
 
     formatted  = models.CharField(max_length=256)
     components = models.ManyToManyField(Component)
+    height     = models.PositiveIntegerField(default=0)
     latitude   = models.FloatField(blank=True, null=True)
     longitude  = models.FloatField(blank=True, null=True)
 
@@ -277,8 +302,13 @@ class Address(models.Model):
                 unseen.append(com.parent)
         return coms
 
+    @staticmethod
+    def to_python(*args, **kwargs):
+        global to_python
+        return to_python(*args, **kwargs)
 
-class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
+
+class AddressDescriptor(ForwardManyToOneDescriptor):
     """Override setting an address field.
 
     In order to call our custimised `to_python` routine each time a value

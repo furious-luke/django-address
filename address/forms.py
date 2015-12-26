@@ -1,3 +1,4 @@
+import six
 import json
 from django import forms
 from django.utils.safestring import mark_safe
@@ -30,7 +31,7 @@ class AddressWidget(forms.TextInput):
             ad = {}
         elif isinstance(value, dict):
             ad = value
-        elif isinstance(value, (int, long)):
+        elif isinstance(value, six.integer_types):
             ad = Address.objects.get(pk=value)
             ad = ad.get_geocode()
         else:
