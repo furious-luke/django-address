@@ -1,9 +1,17 @@
-import os
+import os, sys
 from setuptools import setup, find_packages
+
+version = '0.1.4'
+
+if sys.argv[-1] == 'tag':
+    print("Tagging the version on github:")
+    os.system("git tag -a %s -m 'version %s'" % (version, version))
+    os.system("git push --tags")
+    sys.exit()
 
 setup(
     name='django-address',
-    version='0.1.3',
+    version=version,
     author='Luke Hodkinson',
     author_email='furious.luke@gmail.com',
     maintainer='Luke Hodkinson',
@@ -15,7 +23,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Framework :: Django :: 1.7',
-        'Framework :: Django :: 1.8',        
+        'Framework :: Django :: 1.8',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
