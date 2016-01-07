@@ -1,6 +1,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.db.models.fields.related import ForeignObject, ReverseSingleRelatedObjectDescriptor
+from django.db.models.fields.related import ForeignObject
+try:
+    from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
+except ImportError:
+    from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor as ForwardManyToOneDescriptor
 from django.utils.encoding import python_2_unicode_compatible
 
 import logging
@@ -269,7 +273,7 @@ class Address(models.Model):
                     ad['country_code'] = self.locality.state.country.code
         return ad
 
-class AddressDescriptor(ReverseSingleRelatedObjectDescriptor):
+class AddressDescriptor(ForwardManyToOneDescriptor):
 
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
