@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('kind', models.BigIntegerField()),
                 ('long_name', models.CharField(blank=True, max_length=256)),
-                ('short_name', models.CharField(blank=True, max_length=10)),
+                ('short_name', models.CharField(blank=True, max_length=256)),
                 ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='address.Component')),
             ],
         ),
@@ -26,6 +26,11 @@ class Migration(migrations.Migration):
             model_name='address',
             name='components',
             field=models.ManyToManyField(to='address.Component'),
+        ),
+        migrations.AddField(
+            model_name='address',
+            name='height',
+            field=models.PositiveIntegerField(default=0),
         ),
         migrations.AlterField(
             model_name='address',

@@ -23,6 +23,7 @@ def get_addresses(apps, schema_editor, geolocate):
 
         # Now you can store the address in your system.
         inst.new_address = new_addr
+        inst.save()
 
 
 class Migration(migrations.Migration):

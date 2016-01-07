@@ -53,7 +53,7 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         if not short_name and not long_name:
             raise InconsistentDictError('No short name or long name provided.')
 
-        # Don't creat the component here. We need the hierarchy to identify
+        # Don't create the component here. We need the hierarchy to identify
         # pre-existing components.
         obj = component_model(kind=kind, short_name=short_name, long_name=long_name)
         objs.append((obj, kinds))
@@ -145,8 +145,12 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
     if value is None:
         return None
 
+    # Oh boy. Mother of all hacks.
+    if getattr(value, '_an_unortunate_hack', False):
+        return value
+
     # Is it already an address object?
-    if isinstance(value, Address):
+    elif isinstance(value, address_model):
         return value
 
     # If we have an integer, assume it is a model primary key.

@@ -14,7 +14,12 @@ __all__ = ['AddressWidget', 'AddressField']
 class AddressWidget(forms.TextInput):
 
     class Media:
-        js = ('address/js/jquery.geocomplete.js', 'address/js/address.js')
+        js = (
+            'js/jquery.min.js',
+            'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+            'address/js/jquery.geocomplete.js',
+            'address/js/address.js'
+        )
 
     def __init__(self, *args, **kwargs):
         attrs = kwargs.get('attrs', {})

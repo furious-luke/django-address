@@ -17,7 +17,9 @@ class ConvertAddresses(migrations.RunPython):
             six.print_('\nConverted address does not match original: %s -- %s'%(repr(orig_addr), repr(new_addr)))
             keep = query_yes_no('Use new value?')
         if keep:
-            return to_python(location.raw, None, self.address_model, self.component_model)
+            new_addr = to_python(location.raw, None, self.address_model, self.component_model)
+            new_addr._an_unortunate_hack = True
+            return new_addr
         else:
             return None
 
