@@ -1,4 +1,6 @@
 import sys
+import contextlib
+
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -30,3 +32,15 @@ def query_yes_no(question, default="yes"):
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
+
+
+@contextlib.contextmanager
+def allow_unsaved(model, field):
+    model_field = model._meta.get_field(field)
+    saved = getattr(model_field, 'allow_unsaved_instance_assignment', None)
+    model_field.allow_unsaved_instance_assignment = True
+    yield
+    if saved is None:
+        del model_field.allow_unsaved_instance_assignment
+    else:
+        model_field.allow_unsaved_instance_assignment = saved

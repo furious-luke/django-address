@@ -1,5 +1,7 @@
 from six import string_types, iteritems
 from functools import reduce
+import logging
+
 from django.db import models
 from django.db.models import F
 from django.core.exceptions import ValidationError
@@ -10,18 +12,23 @@ except ImportError:
     from django.db.models.fields.related import ForwardManyToOneDescriptor
 from django.utils.encoding import python_2_unicode_compatible
 from geopy.geocoders import GoogleV3
+
 from .hierarchy import hierarchy
 from .kinds import *
+from .utils import allow_unsaved
 
-import logging
+
 logger = logging.getLogger(__name__)
 
+
 # Python 3 fixes.
+# TODO: Remove
 import sys
 if sys.version > '3':
     long = int
     basestring = (str, bytes)
     unicode = str
+
 
 __all__ = ['Component', 'Address', 'AddressField']
 
@@ -82,7 +89,8 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
                     break
         if not parent:
             parent = kind_table[KIND_COUNTRY]
-        obj.parent = parent
+        with allow_unsaved(component_model, 'parent'):
+            obj.parent = parent
 
     # Find the lowest address components.
     roots = [o[0] for o in objs]
