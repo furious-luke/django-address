@@ -38,7 +38,8 @@ KIND_POSTAL_CODE_PREFIX = 1 << 33 # 'PC'
 KIND_SUBLOCALITY_L2  = 1 << 34 # 'SL'
 KIND_SUBLOCALITY_L3  = 1 << 35 # 'SL'
 KIND_SUBLOCALITY_L4  = 1 << 36 # 'SL'
-KIND_ORDER           = 36
+KIND_POSTAL_CODE_SUFFIX = 1 << 37 # 'PC'
+KIND_ORDER           = 37
 
 KIND_KEY_TABLE = OrderedDict([
     (KIND_STREET_ADDRESS, 'street_address'),
@@ -64,6 +65,7 @@ KIND_KEY_TABLE = OrderedDict([
     (KIND_SUBPREMISE, 'subpremise'),
     (KIND_POSTAL_CODE, 'postal_code'),
     (KIND_POSTAL_CODE_PREFIX, 'postal_code_prefix'),
+    (KIND_POSTAL_CODE_SUFFIX, 'postal_code_suffix'),
     (KIND_NATURAL_FEATURE, 'natural_feature'),
     (KIND_AIRPORT, 'airport'),
     (KIND_PARK, 'park'),
