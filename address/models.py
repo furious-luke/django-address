@@ -257,7 +257,7 @@ class Address(models.Model):
     """A model class for an address."""
 
     formatted  = models.CharField(max_length=256)
-    components = models.ManyToManyField(Component)
+    components = models.ManyToManyField(Component, blank=True)
     height     = models.PositiveIntegerField(default=0)
     latitude   = models.FloatField(blank=True, null=True)
     longitude  = models.FloatField(blank=True, null=True)
