@@ -38,10 +38,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='address',
-            name='raw',
-        ),
-        migrations.RemoveField(
-            model_name='address',
             name='route',
         ),
         migrations.RemoveField(

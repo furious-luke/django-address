@@ -124,12 +124,14 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.latitude = lat
         obj.longitude = lng
         obj.formatted = formatted
+        obj.raw = formatted
         obj.height = height
         obj.components = roots
         obj.save()
     else:
         obj, created = address_model.objects.get_or_create(
             formatted=formatted,
+            raw=formatted,
             defaults={
                 'latitude': lat,
                 'longitude': lng,
@@ -168,6 +170,11 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
     # A string is considered a raw value, try to geocode and
     # if that fails then store directly.
     elif isinstance(value, string_types):
+
+        # Don't try and lookup empty values, just set them to None.
+        if value.strip() == '':
+            return None
+
         return lookup(value, instance, address_model, component_model, geolocator)
 
     # A dictionary of named address components.
@@ -179,7 +186,7 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
         except InconsistentDictError:
             formatted = value.get('formatted_address', None)
             if formatted:
-                return address_model.objects.create(formatted=formatted)
+                return address_model.objects.create(raw=formatted)
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')
@@ -193,14 +200,18 @@ def lookup(address, instance=None, address_model=None, component_model=None, geo
     location = geolocator.geocode(address)
     if not location:
         if instance is not None:
-            instance.formatted = address
+            instance.raw = address
+            instance.formatted = ''
             instance.components = []
             instance.latitude = None
             instance.longitude = None
             return instance
         else:
-            return address_model.objects.create(formatted=address)
-    return to_python(location.raw, instance, component_model)
+            return address_model.objects.create(raw=address)
+    addr = to_python(location.raw, instance, address_model, component_model)
+    addr.raw = address
+    addr.save()
+    return addr
 
 
 @python_2_unicode_compatible
@@ -256,7 +267,8 @@ class Component(models.Model):
 class Address(models.Model):
     """A model class for an address."""
 
-    formatted  = models.CharField(max_length=256)
+    raw        = models.CharField(max_length=256, default='', blank=True)
+    formatted  = models.CharField(max_length=256, default='', blank=True)
     components = models.ManyToManyField(Component, blank=True)
     height     = models.PositiveIntegerField(default=0)
     latitude   = models.FloatField(blank=True, null=True)
@@ -266,11 +278,11 @@ class Address(models.Model):
         verbose_name_plural = 'Addresses'
 
     def __str__(self):
-        return self.formatted
+        return self.raw if self.raw else self.formatted
 
     def clean(self):
-        if not self.formatted:
-            raise ValidationError('Addresses must have a value for `formatted`.')
+        if not self.raw and not self.formatted:
+            raise ValidationError('Addresses must have at least a raw or formatted value.')
 
     def filter_kind(self, kind):
         res = []

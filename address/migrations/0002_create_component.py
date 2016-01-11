@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='address',
             name='components',
-            field=models.ManyToManyField(to='address.Component'),
+            field=models.ManyToManyField(blank=True, to='address.Component'),
         ),
         migrations.AddField(
             model_name='address',
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='address',
             name='formatted',
-            field=models.CharField(max_length=256),
+            field=models.CharField(max_length=256, default='', blank=True),
         ),
         migrations.AlterField(
             model_name='address',
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='address',
             name='raw',
-            field=models.CharField(max_length=200, blank=True, null=True),
+            field=models.CharField(max_length=256, default='', blank=True),
         ),
         migrations.AlterUniqueTogether(
             name='component',
