@@ -55,6 +55,10 @@ class AddressWidget(forms.TextInput):
             geo = json.loads(data.get(name + '_geocode', None))
         except:
             geo = {}
+        try:
+            geo['raw'] = data.get(name, None)
+        except:
+            pass
         return geo
 
 

@@ -45,8 +45,9 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
     if component_model is None:
         component_model = Component
 
-    # Get the formatted value.
-    formatted = value.get('formatted_address', None)
+    # Get the raw and formatted values.
+    formatted = value.get('formatted_address', '')
+    raw = value.get('raw', formatted)
 
     # Create new components, but don't save them yet.
     components = value.get('address_components', [])
@@ -124,14 +125,14 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.latitude = lat
         obj.longitude = lng
         obj.formatted = formatted
-        obj.raw = formatted
+        obj.raw = raw
         obj.height = height
         obj.components = roots
         obj.save()
     else:
         obj, created = address_model.objects.get_or_create(
             formatted=formatted,
-            raw=formatted,
+            raw=raw,
             defaults={
                 'latitude': lat,
                 'longitude': lng,
@@ -152,7 +153,7 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
         address_model = Address
 
     # Keep `None`s.
-    if value is None:
+    if value in [None, {}, '']:
         return None
 
     # Oh boy. Mother of all hacks.
@@ -184,9 +185,12 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
         try:
             return _to_python(value, instance, address_model, component_model)
         except InconsistentDictError:
-            formatted = value.get('formatted_address', None)
-            if formatted:
-                return address_model.objects.create(raw=formatted)
+            raw = value.get('raw', '')
+            formatted = value.get('formatted_address', '')
+            if raw or formatted:
+                return address_model.objects.create(raw=raw, formatted=formatted)
+            else:
+                return None
 
     # Not in any of the formats I recognise.
     raise ValidationError('Invalid address value.')

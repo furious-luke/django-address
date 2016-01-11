@@ -172,10 +172,16 @@ class ToPythonTestCase(TestCase):
 
     def test_inconsistent_dict_uses_formatted(self):
         addr = to_python({'street_address': 'hello world', 'formatted_address': 'full hello world'})
-        self.assertEqual(addr.raw, 'full hello world')
+        self.assertEqual(addr.raw, '')
+        self.assertEqual(addr.formatted, 'full hello world')
 
-    def test_no_formatted_raises_error(self):
-        self.assertRaises(ValidationError, to_python, {'street_address': 'hello world'})
+    def test_inconsistent_dict_uses_raw(self):
+        addr = to_python({'street_address': 'hello world', 'raw': 'full hello world'})
+        self.assertEqual(addr.raw, 'full hello world')
+        self.assertEqual(addr.formatted, '')
+
+    def test_no_formatted_or_raw_returns_none(self):
+        self.assertEqual(to_python({'street_address': 'hello world'}), None)
 
 
 class _ToPythonTestCase(TestCase):
