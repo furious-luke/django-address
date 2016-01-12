@@ -374,6 +374,13 @@ class _ToPythonTestCase(TestCase):
         self.assertEqual(addr0, addr1)
 
 
+class ConsistencyTestCase(TestCase):
+
+    def test_wausau(self):
+        addr = Address.to_python('Wausau, WI 54401, USA')
+        self.assertFalse(addr.consistent)
+
+
 #     def setUp(self):
 #         self.au = Country.objects.create(name='Australia', code='AU')
 #         self.uk = Country.objects.create(name='United Kingdom', code='UK')

@@ -16,6 +16,7 @@ from geopy.geocoders import GoogleV3
 from .hierarchy import hierarchy
 from .kinds import *
 from .utils import allow_unsaved
+from .consistency import get_consistency_from_parts
 
 
 logger = logging.getLogger(__name__)
@@ -117,6 +118,9 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         roots[ii], h = _save(roots[ii], 0)
         height = max(height, h)
 
+    # Calculate the consistency for the objects and raw value.
+    consistent = get_consistency_from_parts(raw, [o[0] for o in objs])
+
     # Now create the address object.
     lat = value.get('geometry', {}).get('location', {}).get('lat', None)
     lng = value.get('geometry', {}).get('location', {}).get('lng', None)
@@ -128,15 +132,17 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.raw = raw
         obj.height = height
         obj.components = roots
+        obj.consistent = consistent
         obj.save()
     else:
         obj, created = address_model.objects.get_or_create(
-            formatted=formatted,
             raw=raw,
             defaults={
+                'formatted': formatted,
                 'latitude': lat,
                 'longitude': lng,
                 'height': height,
+                'consistent': consistent,
             }
         )
         if created:
@@ -212,9 +218,8 @@ def lookup(address, instance=None, address_model=None, component_model=None, geo
             return instance
         else:
             return address_model.objects.create(raw=address)
+    location.raw['raw'] = address
     addr = to_python(location.raw, instance, address_model, component_model)
-    addr.raw = address
-    addr.save()
     return addr
 
 
@@ -277,6 +282,7 @@ class Address(models.Model):
     height     = models.PositiveIntegerField(default=0)
     latitude   = models.FloatField(blank=True, null=True)
     longitude  = models.FloatField(blank=True, null=True)
+    consistent = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = 'Addresses'

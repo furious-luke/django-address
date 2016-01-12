@@ -68,6 +68,7 @@ class ComponentAdmin(admin.ModelAdmin):
 class AddressAdmin(admin.ModelAdmin):
     filter_horizontal = ('components',)
     list_display = ('__str__', 'formatted', 'inline_lookup', 'consistent')
+    list_filter = ('consistent',)
     # search_fields = ('name',)
     # list_filter = (UnidentifiedListFilter,)
 
@@ -85,17 +86,18 @@ class AddressAdmin(admin.ModelAdmin):
             obj = get_object_or_404(Address, pk=pk)
             name = 'address_' + pk
             value = AddressWidget().value_from_datadict(request.POST, None, name)
+            value['raw'] = obj.raw # keep old raw value
             addr = Address.to_python(value, instance=obj)
         return super(AddressAdmin, self).changelist_view(request, extra_content)
 
-    def get_queryset(self, request):
-        qs = super(AddressAdmin, self).get_queryset(request)
-        qs = qs.annotate(consistent=Case(
-            When(raw=F('formatted'), then=Value(True)),
-            default=Value(False),
-            output_field=BooleanField(),
-        ))
-        return qs
+    # def get_queryset(self, request):
+    #     qs = super(AddressAdmin, self).get_queryset(request)
+    #     qs = qs.annotate(consistent=Case(
+    #         When(raw=F('formatted'), then=Value(True)),
+    #         default=Value(False),
+    #         output_field=BooleanField(),
+    #     ))
+    #     return qs
 
     def inline_lookup(self, obj):
         name = 'address_' + str(obj.pk)
@@ -103,7 +105,8 @@ class AddressAdmin(admin.ModelAdmin):
         return '%s<button name="%s_submit" type="submit">Save</button>'%(widget, name)
     inline_lookup.allow_tags = True
 
-    def consistent(self, obj):
-        return obj.raw == obj.formatted
-    consistent.boolean = True
-    consistent.admin_order_field = 'consistent'
+    # def consistent(self, obj):
+    #     return get_consistency(obj)
+    #     # return obj.raw == obj.formatted
+    # consistent.boolean = True
+    # # consistent.admin_order_field = 'consistent'
