@@ -1,10 +1,13 @@
 import six
 import json
+import logging
+
 from django import forms
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
+
 from .models import Address, to_python
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +49,7 @@ class AddressWidget(forms.TextInput):
         elems = [super(AddressWidget, self).render(name, ad.get('formatted_address', None), attrs, **kwargs)]
 
         # Generate the hidden JSON field.
-        elems.append('<input type="hidden" id="id_%s_geocode" name="%s_geocode" value="%s" />'%(name, name, json.dumps(ad)))
+        elems.append('<input type="hidden" id="id_%s_geocode" name="%s_geocode" value="%s" />'%(name, name, escape(json.dumps(ad))))
 
         return mark_safe('\n'.join(elems))
 
