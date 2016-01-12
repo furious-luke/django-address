@@ -1,7 +1,7 @@
 import string
 
 
-PUNC_TABLE = str.maketrans(dict([(c, None) for c in string.punctuation]))
+PUNC_TABLE = dict([(c, None) for c in string.punctuation])
 KNOWN_TABLE = {
     'usa': 'us'
 }
