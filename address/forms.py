@@ -37,16 +37,20 @@ class AddressWidget(forms.TextInput):
         # Can accept None, a dictionary of values, a PK, or an Address object.
         if value in (None, ''):
             ad = {}
+            raw = None
         elif isinstance(value, dict):
             ad = value
+            raw = ad.get('raw', ad.get('formatted_address', None))
         elif isinstance(value, six.integer_types):
             ad = Address.objects.get(pk=value)
+            raw = ad.raw
             ad = ad.get_geocode()
         else:
             ad = value.get_geocode()
+            raw = value.raw
 
         # Begin by generating the visible formatted address.
-        elems = [super(AddressWidget, self).render(name, ad.get('formatted_address', None), attrs, **kwargs)]
+        elems = [super(AddressWidget, self).render(name, raw, attrs, **kwargs)]
 
         # Generate the hidden JSON field.
         elems.append('<input type="hidden" id="id_%s_geocode" name="%s_geocode" value="%s" />'%(name, name, escape(json.dumps(ad))))
