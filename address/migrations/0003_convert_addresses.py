@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+from django.conf import settings
 from geopy.geocoders import GoogleV3
 from address.models import to_python
 # from address.utils import query_yes_no
 
 
 def convert_addresses(apps, schema_editor):
-    geolocator = GoogleV3(timeout=60)
+    geolocator = GoogleV3(api_key=getattr(settings, 'GOOGLE_API_KEY', None), timeout=60)
     address_model = apps.get_model('address.address')
     component_model = apps.get_model('address.component')
     for obj in address_model.objects.all():

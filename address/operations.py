@@ -1,5 +1,6 @@
 import six
 from django.db import migrations, router
+from django.conf import settings
 from geopy.geocoders import GoogleV3
 from address.models import Address #, to_python
 # from address.utils import query_yes_no
@@ -30,7 +31,7 @@ class ConvertAddresses(migrations.RunPython):
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
         if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
-            self.geolocator = GoogleV3(timeout=60)
+            self.geolocator = GoogleV3(api_key=getattr(settings, 'GOOGLE_API_KEY', None), timeout=60)
             self.address_model = from_state.apps.get_model('address.address')
             self.component_model = from_state.apps.get_model('address.component')
             self.code(from_state.apps, schema_editor, self.geolocate)

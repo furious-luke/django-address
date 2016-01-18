@@ -189,6 +189,12 @@ is no guarantee there will be only one component per level.
 A list of all available component types is available in `address/kinds.py`.
 
 
+## API Key
+
+You can supply your own API key for Google geolocating by setting a
+value for `GOOGLE_API_KEY` in your Django settings file.
+
+
 ## Forms
 
 Included is a form field for simplifying address entry. A Google maps

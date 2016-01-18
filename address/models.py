@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignObject
+from django.conf import settings
 try:
     from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor as ForwardManyToOneDescriptor
 except ImportError:
@@ -206,7 +207,7 @@ def lookup(address, instance=None, address_model=None, component_model=None, geo
     if address_model is None:
         address_model = Address
     if geolocator is None:
-        geolocator = GoogleV3(timeout=10)
+        geolocator = GoogleV3(api_key=getattr(settings, 'GOOGLE_API_KEY', None), timeout=10)
     location = geolocator.geocode(address)
     if not location:
         if instance is not None:
