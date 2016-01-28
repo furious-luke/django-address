@@ -69,7 +69,7 @@ class AddressAdmin(admin.ModelAdmin):
     filter_horizontal = ('components',)
     list_display = ('__str__', 'formatted', 'inline_lookup', 'consistent')
     list_filter = ('consistent',)
-    # search_fields = ('name',)
+    search_fields = ('raw',)
     # list_filter = (UnidentifiedListFilter,)
 
     class Media:
