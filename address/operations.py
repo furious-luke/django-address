@@ -32,6 +32,6 @@ class ConvertAddresses(migrations.RunPython):
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
         if router.allow_migrate(schema_editor.connection.alias, app_label, **self.hints):
             self.geolocator = GoogleV3(api_key=getattr(settings, 'GOOGLE_API_KEY', None), timeout=60)
-            self.address_model = from_state.apps.get_model('address.address')
-            self.component_model = from_state.apps.get_model('address.component')
+            self.address_model = from_state.apps.get_model('dj_address.address')
+            self.component_model = from_state.apps.get_model('dj_address.component')
             self.code(from_state.apps, schema_editor, self.geolocate)

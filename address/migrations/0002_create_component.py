@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('address', '0001_initial'),
+        ('dj_address', '0001_initial'),
     ]
 
     operations = [
@@ -19,13 +19,13 @@ class Migration(migrations.Migration):
                 ('kind', models.BigIntegerField()),
                 ('long_name', models.CharField(blank=True, max_length=256)),
                 ('short_name', models.CharField(blank=True, max_length=256)),
-                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='address.Component')),
+                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='dj_address.Component')),
             ],
         ),
         migrations.AddField(
             model_name='address',
             name='components',
-            field=models.ManyToManyField(blank=True, to='address.Component'),
+            field=models.ManyToManyField(blank=True, to='dj_address.Component'),
         ),
         migrations.AddField(
             model_name='address',

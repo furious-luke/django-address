@@ -11,8 +11,8 @@ from address.models import to_python
 
 def convert_addresses(apps, schema_editor):
     geolocator = GoogleV3(api_key=getattr(settings, 'GOOGLE_API_KEY', None), timeout=60)
-    address_model = apps.get_model('address.address')
-    component_model = apps.get_model('address.component')
+    address_model = apps.get_model('dj_address.address')
+    component_model = apps.get_model('dj_address.component')
     for obj in address_model.objects.all():
         orig_addr = obj.raw if obj.raw else obj.formatted
         addr = to_python(orig_addr,
@@ -39,7 +39,7 @@ def convert_addresses(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('address', '0002_create_component'),
+        ('dj_address', '0002_create_component'),
     ]
 
     operations = [

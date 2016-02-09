@@ -228,7 +228,7 @@ def lookup(address, instance=None, address_model=None, component_model=None, geo
 class Component(models.Model):
     """An address component."""
 
-    parent     = models.ForeignKey('address.Component', related_name='children', blank=True, null=True)
+    parent     = models.ForeignKey('dj_address.Component', related_name='children', blank=True, null=True)
     kind       = models.BigIntegerField()
     long_name  = models.CharField(max_length=256, blank=True)
     short_name = models.CharField(max_length=256, blank=True)
@@ -359,13 +359,13 @@ class AddressField(models.ForeignKey):
     """An address model field.
 
     The address is stored as a foreign-key; AddressField inherits from
-    ForeignKey but forces the related field to be `address.Address`.
+    ForeignKey but forces the related field to be `dj_address.Address`.
     """
 
     description = 'An address'
 
     def __init__(self, **kwargs):
-        kwargs['to'] = 'address.Address'
+        kwargs['to'] = 'dj_address.Address'
         super(AddressField, self).__init__(**kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
