@@ -196,7 +196,7 @@ class Locality(models.Model):
 
     class Meta:
         verbose_name_plural = 'Localities'
-        unique_together = ('name', 'state')
+        unique_together = ('name', 'postal_code', 'state')
         ordering = ('state', 'name')
 
     def __str__(self):
