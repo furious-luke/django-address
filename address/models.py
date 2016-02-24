@@ -136,16 +136,27 @@ def _to_python(value, instance=None, address_model=None, component_model=None):
         obj.consistent = consistent
         obj.save()
     else:
-        obj, created = address_model.objects.get_or_create(
-            raw=raw,
-            defaults={
-                'formatted': formatted,
-                'latitude': lat,
-                'longitude': lng,
-                'height': height,
-                'consistent': consistent,
-            }
-        )
+        defaults = {
+            'formatted': formatted,
+            'latitude': lat,
+            'longitude': lng,
+            'height': height,
+            'consistent': consistent,
+        }
+        try:
+            obj, created = address_model.objects.get_or_create(
+                raw=raw,
+                defaults=defaults,
+            )
+        except address_model.MultipleObjectsReturned:
+            logger.warning(('There appears to be duplicate addresses in your database. '
+                            'This shouldn\'t really happen, but can sometimes occur as a '
+                            'result of the initial migrations. The offending address is '
+                            '{address}. If you\'d like to remove the duplicates you\'ll need '
+                            'to update any other models with ForeignKeys to that address.'.format(
+                                address=raw
+                            )))
+            obj, created = address_model.objects.filter(raw=raw)[0], False
         if created:
             obj.components = roots
             obj.save()
