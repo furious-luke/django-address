@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from address.models import Address
+
 from .forms import ExampleForm
 
 def home(request):
@@ -7,5 +9,5 @@ def home(request):
         if form.is_valid():
             pass
     else:
-        form = ExampleForm()
+        form = ExampleForm(initial={'address': Address.objects.first()})
     return render(request, 'example/home.html', {'form': form})

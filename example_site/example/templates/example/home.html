@@ -18,6 +18,7 @@
       {% csrf_token %}
       {{ form }}
       <input type="submit"></input>
+      <p>form.initial.address: {{ form.initial.address }}</p>
     </form>
   </body>
 </html>
