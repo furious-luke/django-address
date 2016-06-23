@@ -175,7 +175,7 @@ def to_python(value, instance=None, address_model=None, component_model=None, ge
         return None
 
     # Oh boy. Mother of all hacks.
-    if getattr(value, '_an_unortunate_hack', False):
+    if getattr(value, '_an_unfortunate_hack', False):
         return value
 
     # Is it already an address object?

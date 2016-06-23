@@ -12,7 +12,8 @@ class ConvertAddresses(migrations.RunPython):
         new_addr = Address.to_python(orig_addr,
                                      address_model=self.address_model,
                                      component_model=self.component_model)
-        new_addr._an_unortunate_hack = True
+        if new_addr is not None:
+            new_addr._an_unfortunate_hack = True
         return new_addr
         # location = self.geolocator.geocode(orig_addr)
         # if not location:
