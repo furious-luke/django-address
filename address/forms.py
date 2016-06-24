@@ -5,6 +5,7 @@ import logging
 from django import forms
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.conf import settings
 
 from .models import Address, to_python
 
@@ -16,13 +17,20 @@ __all__ = ['AddressWidget', 'AddressField']
 
 class AddressWidget(forms.TextInput):
 
-    class Media:
-        js = (
+    def _media(self):
+        maps_api = 'https://maps.googleapis.com/maps/api/js'
+        query_parms = '?libraries=places&sensor=false'
+
+        if settings.GOOGLE_API_KEY:
+            query_parms += '&key={}'.format(settings.GOOGLE_API_KEY)
+
+        return forms.Media(js=(
             'js/jquery.min.js',
-            'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
             'address/js/jquery.geocomplete.js',
-            'address/js/address.js'
-        )
+            'address/js/address.js',
+            maps_api + query_parms))
+
+    media = property(_media)
 
     def __init__(self, *args, **kwargs):
         attrs = kwargs.get('attrs', {})
