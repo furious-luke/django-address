@@ -73,7 +73,7 @@ class AddressAdmin(admin.ModelAdmin):
     # list_filter = (UnidentifiedListFilter,)
 
     class Media:
-        js = AddressWidget.Media.js
+        js = AddressWidget().media['js']
 
     def changelist_view(self, request, extra_content=None):
         pk = None
