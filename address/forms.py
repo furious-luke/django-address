@@ -29,7 +29,7 @@ class AddressWidget(forms.TextInput):
         maps_api = 'https://maps.googleapis.com/maps/api/js'
         query_parms = '?libraries=places&sensor=false'
 
-        if settings.GOOGLE_API_KEY:
+        if getattr(settings, 'GOOGLE_API_KEY', None) is not None:
             query_parms += '&key={}'.format(settings.GOOGLE_API_KEY)
 
         return forms.Media(js=(
