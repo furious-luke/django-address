@@ -1,6 +1,8 @@
 from django import forms
 # from uni_form.helpers import *
 from django.utils.safestring import mark_safe
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from .models import Address, to_python
 
 import logging
@@ -15,6 +17,9 @@ if sys.version > '3':
 
 __all__ = ['AddressWidget', 'AddressField']
 
+if not settings.GOOGLE_MAPS_API_KEY:
+    raise ImproperlyConfigured("GOOGLE_MAPS_API_KEY is not configured in settings.py")
+
 class AddressWidget(forms.TextInput):
     components = [('country', 'country'), ('country_code', 'country_short'),
                   ('locality', 'locality'), ('postal_code', 'postal_code'),
@@ -26,7 +31,7 @@ class AddressWidget(forms.TextInput):
 
     class Media:
         js = (
-              'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+              'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false&key=%s' % settings.GOOGLE_MAPS_API_KEY,
               'js/jquery.geocomplete.min.js',
               'address/js/address.js')
 
