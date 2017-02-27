@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 # from uni_form.helpers import *
 from django.utils.safestring import mark_safe
 from .models import Address, to_python
@@ -26,7 +27,7 @@ class AddressWidget(forms.TextInput):
 
     class Media:
         js = (
-              'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false',
+              'https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false&key=%s' % settings.GOOGLE_MAPS_API_KEY,
               'js/jquery.geocomplete.min.js',
               'address/js/address.js')
 
