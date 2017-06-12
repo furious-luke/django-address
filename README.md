@@ -28,6 +28,13 @@ INSTALLED_APPS = (
     ...
     'address',
 )
+
+```
+API Key:  
+Get your API Key following the steps at https://developers.google.com/maps/documentation/javascript/get-api-key
+At settings.py add:
+```python
+GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY_HERE'  
 ```
 
 ## The Model
@@ -144,6 +151,13 @@ the lookup fails the raw entered value is used.
 TODO: Talk about this more.
 
 ## Partial Example
+The API Key:  
+If you dont have one, get an API key following the instructions at https://developers.google.com/maps/documentation/javascript/get-api-key  
+
+At your settings.py add:
+```python
+GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
+```
 
 The model:
 
