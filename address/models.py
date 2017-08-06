@@ -29,6 +29,7 @@ def _to_python(value):
     state = value.get('state', '')
     state_code = value.get('state_code', '')
     locality = value.get('locality', '')
+    sublocality = value.get('sublocality', '')
     postal_code = value.get('postal_code', '')
     street_number = value.get('street_number', '')
     route = value.get('route', '')
@@ -39,6 +40,10 @@ def _to_python(value):
     # If there is no value (empty raw) then return None.
     if not raw:
         return None
+
+    # Fix issue with NYC boroughs (https://code.google.com/p/gmaps-api-issues/issues/detail?id=635)
+    if not locality and sublocality:
+        locality = sublocality
 
     # If we have an inconsistent set of value bail out now.
     if (country or state or locality) and not (country and state and locality):
