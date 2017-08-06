@@ -11,3 +11,5 @@ dist
 db.sqlite3
 environ/
 examples/example_site/env
+.eggs/
+.tox/
