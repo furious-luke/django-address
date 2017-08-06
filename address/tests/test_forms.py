@@ -34,7 +34,7 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.field.to_python({'latitude': ''}), None)
         self.assertEqual(self.field.to_python({'longitude': ''}), None)
 
-    def test_to_pyton_no_locality(self):
+    def test_to_python_no_locality(self):
         input = {
             'country': 'United States',
             'country_code': 'US',
