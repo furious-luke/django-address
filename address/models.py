@@ -289,7 +289,7 @@ class AddressDescriptor(ForwardManyToOneDescriptor):
 class AddressField(models.ForeignKey):
     description = 'An address'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
         super(AddressField, self).__init__(**kwargs)
 
