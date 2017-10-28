@@ -24,8 +24,6 @@ SECRET_KEY = 'fbaa1unu0e8z5@9mm%k#+*d@iny*=-)ma2b#ymq)o9z^3%ijh)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 # Get your own google API key from
@@ -73,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'debug': DEBUG,
         },
     },
 ]
