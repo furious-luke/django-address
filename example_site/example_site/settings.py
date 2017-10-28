@@ -28,6 +28,9 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Get your own google API key from
+# https://developers.google.com/maps/documentation/javascript/get-api-key
+GOOGLE_API_KEY = ''
 
 # Application definition
 
