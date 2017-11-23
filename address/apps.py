@@ -8,4 +8,4 @@ class AddressConfig(AppConfig):
     name = 'address'
 
     def ready(self):
-        import signals
+        import address.signals
