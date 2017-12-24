@@ -291,10 +291,10 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
-        super(AddressField, self).__init__(**kwargs)
+        super(AddressField, self).__init__(*args, **kwargs)
 
-    def contribute_to_class(self, cls, name, virtual_only=False):
-        super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
+    def contribute_to_class(self, cls, name, private_only=False):
+        super(ForeignObject, self).contribute_to_class(cls, name, private_only=private_only)
         setattr(cls, self.name, AddressDescriptor(self))
 
     # def deconstruct(self):
