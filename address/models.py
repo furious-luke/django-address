@@ -291,7 +291,7 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
-        super(AddressField, self).__init__(**kwargs)
+        super(AddressField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
         from address.compat import compat_contribute_to_class
