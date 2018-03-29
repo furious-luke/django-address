@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 from setuptools import setup, find_packages
 
 version = '0.1.6'
@@ -19,7 +20,7 @@ setup(
     url='https://github.com/furious-luke/django-address',
     description='A django application for describing addresses.',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
-    classifiers = [
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
         'Framework :: Django :: 1.7',

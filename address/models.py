@@ -1,17 +1,18 @@
-from django.db import models
+import logging
+import sys
+
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.models.fields.related import ForeignObject
+from django.utils.encoding import python_2_unicode_compatible
+
 try:
     from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 except ImportError:
     from django.db.models.fields.related import ReverseSingleRelatedObjectDescriptor as ForwardManyToOneDescriptor
-from django.utils.encoding import python_2_unicode_compatible
 
-import logging
 logger = logging.getLogger(__name__)
 
-# Python 3 fixes.
-import sys
 if sys.version > '3':
     long = int
     basestring = (str, bytes)
@@ -19,8 +20,10 @@ if sys.version > '3':
 
 __all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
 
+
 class InconsistentDictError(Exception):
     pass
+
 
 def _to_python(value):
     raw = value.get('raw', '')
@@ -56,7 +59,7 @@ def _to_python(value):
         if country:
             if len(country_code) > Country._meta.get_field('code').max_length:
                 if country_code != country:
-                    raise ValueError('Invalid country code (too long): %s'%country_code)
+                    raise ValueError('Invalid country code (too long): %s' % country_code)
                 country_code = ''
             country_obj = Country.objects.create(name=country, code=country_code)
         else:
@@ -69,7 +72,7 @@ def _to_python(value):
         if state:
             if len(state_code) > State._meta.get_field('code').max_length:
                 if state_code != state:
-                    raise ValueError('Invalid state code (too long): %s'%state_code)
+                    raise ValueError('Invalid state code (too long): %s' % state_code)
                 state_code = ''
             state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
         else:
@@ -116,8 +119,10 @@ def _to_python(value):
     return address_obj
 
 ##
-## Convert a dictionary to an address.
+# Convert a dictionary to an address.
 ##
+
+
 def to_python(value):
 
     # Keep `None`s.
@@ -152,23 +157,27 @@ def to_python(value):
     raise ValidationError('Invalid address value.')
 
 ##
-## A country.
+# A country.
 ##
+
+
 @python_2_unicode_compatible
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
-    code = models.CharField(max_length=2, blank=True) # not unique as there are duplicates (IT)
+    code = models.CharField(max_length=2, blank=True)  # not unique as there are duplicates (IT)
 
     class Meta:
         verbose_name_plural = 'Countries'
         ordering = ('name',)
 
     def __str__(self):
-        return '%s'%(self.name or self.code)
+        return '%s' % (self.name or self.code)
 
 ##
-## A state. Google refers to this as `administration_level_1`.
+# A state. Google refers to this as `administration_level_1`.
 ##
+
+
 @python_2_unicode_compatible
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
@@ -181,18 +190,20 @@ class State(models.Model):
 
     def __str__(self):
         txt = self.to_str()
-        country = '%s'%self.country
+        country = '%s' % self.country
         if country and txt:
             txt += ', '
         txt += country
         return txt
 
     def to_str(self):
-        return '%s'%(self.name or self.code)
+        return '%s' % (self.name or self.code)
 
 ##
-## A locality (suburb).
+# A locality (suburb).
 ##
+
+
 @python_2_unicode_compatible
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
@@ -205,22 +216,24 @@ class Locality(models.Model):
         ordering = ('state', 'name')
 
     def __str__(self):
-        txt = '%s'%self.name
+        txt = '%s' % self.name
         state = self.state.to_str() if self.state else ''
         if txt and state:
             txt += ', '
         txt += state
         if self.postal_code:
-            txt += ' %s'%self.postal_code
-        cntry = '%s'%(self.state.country if self.state and self.state.country else '')
+            txt += ' %s' % self.postal_code
+        cntry = '%s' % (self.state.country if self.state and self.state.country else '')
         if cntry:
-            txt += ', %s'%cntry
+            txt += ', %s' % cntry
         return txt
 
 ##
-## An address. If for any reason we are unable to find a matching
-## decomposed address we will store the raw address string in `raw`.
+# An address. If for any reason we are unable to find a matching
+# decomposed address we will store the raw address string in `raw`.
 ##
+
+
 @python_2_unicode_compatible
 class Address(models.Model):
     street_number = models.CharField(max_length=20, blank=True)
@@ -238,20 +251,20 @@ class Address(models.Model):
 
     def __str__(self):
         if self.formatted != '':
-            txt = '%s'%self.formatted
+            txt = '%s' % self.formatted
         elif self.locality:
             txt = ''
             if self.street_number:
-                txt = '%s'%self.street_number
+                txt = '%s' % self.street_number
             if self.route:
                 if txt:
-                    txt += ' %s'%self.route
-            locality = '%s'%self.locality
+                    txt += ' %s' % self.route
+            locality = '%s' % self.locality
             if txt and locality:
                 txt += ', '
             txt += locality
         else:
-            txt = '%s'%self.raw
+            txt = '%s' % self.raw
         return txt
 
     def clean(self):
@@ -278,23 +291,30 @@ class Address(models.Model):
                     ad['country_code'] = self.locality.state.country.code
         return ad
 
+
 class AddressDescriptor(ForwardManyToOneDescriptor):
 
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
 
 ##
-## A field for addresses in other models.
+# A field for addresses in other models.
 ##
+
+
 class AddressField(models.ForeignKey):
     description = 'An address'
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
-        super(AddressField, self).__init__(**kwargs)
+        super(AddressField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
-        super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
+        from address.compat import compat_contribute_to_class
+
+        compat_contribute_to_class(self, cls, name, virtual_only)
+        # super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
+
         setattr(cls, self.name, AddressDescriptor(self))
 
     # def deconstruct(self):

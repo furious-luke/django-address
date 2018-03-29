@@ -1,5 +1,6 @@
 from django import forms
 from address.forms import AddressField
 
-class ExampleForm(forms.Form):
+
+class PersonForm(forms.Form):
     address = AddressField()

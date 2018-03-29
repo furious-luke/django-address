@@ -1,7 +1,9 @@
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import path
+
+from person import views as person
 
 urlpatterns = [
-    url(r'^$', 'example.views.home', name='home'),
-    url(r'^admin/', include(admin.site.urls)),
+    path('', person.home, name='home'),
+    path('admin/', admin.site.urls),
 ]

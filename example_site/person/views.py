@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from address.models import Address
 
-from .forms import ExampleForm
+from .forms import PersonForm
+
 
 def home(request):
     if request.method == 'POST':
-        form = ExampleForm(request.POST)
+        form = PersonForm(request.POST)
         if form.is_valid():
             pass
     else:
-        form = ExampleForm(initial={'address': Address.objects.first()})
+        form = PersonForm(initial={'address': Address.objects.first()})
+
     return render(request, 'example/home.html', {'form': form})
