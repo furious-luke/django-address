@@ -12,6 +12,7 @@ if sys.version > '3':
     basestring = (str, bytes)
     unicode = str
 
+
 class CountryTestCase(TestCase):
 
     def setUp(self):
@@ -31,6 +32,7 @@ class CountryTestCase(TestCase):
 
     def test_unicode(self):
         self.assertEqual(unicode(self.au), u'Australia')
+
 
 class StateTestCase(TestCase):
 
@@ -62,6 +64,7 @@ class StateTestCase(TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.vic), u'Victoria, Australia')
         self.assertEqual(unicode(self.empty), u'Australia')
+
 
 class LocalityTestCase(TestCase):
 
@@ -101,6 +104,7 @@ class LocalityTestCase(TestCase):
         self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, Victoria 3000, Australia')
         self.assertEqual(unicode(self.au_vic_ftz), u'Fitzroy, Victoria, Australia')
         self.assertEqual(unicode(self.au_vic_empty), u'Victoria, Australia')
+
 
 class AddressTestCase(TestCase):
 
@@ -150,6 +154,7 @@ class AddressTestCase(TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.ad1), u'1 Some Street, Melbourne, Victoria 3000, Australia')
         self.assertEqual(unicode(self.ad_empty), u'Northcote, Victoria 3070, Australia')
+
 
 class AddressFieldTestCase(TestCase):
 
