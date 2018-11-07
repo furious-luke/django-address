@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ['AddressWidget', 'AddressField']
 
-if not settings.GOOGLE_API_KEY:
+if not hasattr(settings, 'GOOGLE_API_KEY') or not settings.GOOGLE_API_KEY:
     raise ImproperlyConfigured("GOOGLE_API_KEY is not configured in settings.py")
 
 
