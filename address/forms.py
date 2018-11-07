@@ -1,5 +1,6 @@
 import logging
 import sys
+import warnings
 
 from django import forms
 from django.conf import settings
@@ -19,7 +20,8 @@ logger = logging.getLogger(__name__)
 __all__ = ['AddressWidget', 'AddressField']
 
 if not hasattr(settings, 'GOOGLE_API_KEY') or not settings.GOOGLE_API_KEY:
-    raise ImproperlyConfigured("GOOGLE_API_KEY is not configured in settings.py")
+    msg = "GOOGLE_API_KEY is not configured in settings.py"
+    warnings.warn(msg, RuntimeWarning)
 
 
 class AddressField(forms.ModelChoiceField):
