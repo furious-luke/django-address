@@ -2,6 +2,7 @@ import sys
 
 from django import forms
 from django.conf import settings
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .models import Address
@@ -73,14 +74,24 @@ class AddressWidget(forms.TextInput):
         # Generate the elements. We should create a suite of hidden fields
         # For each individual component, and a visible field for the raw
         # input. Begin by generating the raw input.
-        elems = [super(AddressWidget, self).render(name, ad.get('formatted', None), attrs, **kwargs)]
+        elems = [
+            super(AddressWidget, self).render(
+                name,
+                escape(ad.get('formatted', None)),
+                attrs,
+                **kwargs
+            )
+        ]
 
         # Now add the hidden fields.
         elems.append('<div id="%s_components">' % name)
         for com in self.components:
             elems.append('<input type="hidden" name="%s_%s" data-geo="%s" value="%s" />' % (
-                name, com[0], com[1], ad.get(com[0], ''))
-            )
+                name,
+                com[0],
+                com[1],
+                escape(ad.get(com[0], ''))
+            ))
         elems.append('</div>')
 
         return mark_safe(unicode('\n'.join(elems)))
