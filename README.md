@@ -1,16 +1,5 @@
 # django-address
 
-## Disclaimer
-
-These instructions are a little shabby, I haven't had a whole lot of time to
-devote to explaining things thoroughly. If you're interested in using this
-but are having trouble getting it setup please feel free to email me at
-furious.luke@gmail.com, I'll assist as best I can and update the instructions
-in the process. Cheers!
-
-Also, *there will be bugs*, please let me know of any issues and I'll do my
-best to fix them.
-
 ## Installation
 
 Previously a patch for Django was required to make this app work, but as
@@ -18,7 +7,7 @@ of 1.7 the patch is no longer needed. Installation is now done as per
 usual. The package is installed with:
 
 ```bash
-python setup.py install
+pip install django-address
 ```
 
 Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
@@ -178,3 +167,14 @@ The template:
   {{ form }}
 </body>
 ```
+
+## Disclaimer
+
+These instructions are a little shabby, I haven't had a whole lot of time to
+devote to explaining things thoroughly. If you're interested in using this
+but are having trouble getting it setup please feel free to email me at
+furious.luke@gmail.com, I'll assist as best I can and update the instructions
+in the process. Cheers!
+
+Also, *there will be bugs*, please let me know of any issues and I'll do my
+best to fix them.
