@@ -77,7 +77,7 @@ class AddressWidget(forms.TextInput):
         elems = [
             super(AddressWidget, self).render(
                 name,
-                escape(ad.get('formatted', None)),
+                escape(ad.get('formatted', '')),
                 attrs,
                 **kwargs
             )
