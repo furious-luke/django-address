@@ -93,7 +93,7 @@ Values can be set either by assigning an Address object:
 Or by supplying a dictionary of address components:
 
 ```python
-  obj.address = {'street_number': '1', route='Somewhere Ave', ...}
+  obj.address = {'street_number': '1', 'route': 'Somewhere Ave', ...}
 ```
 
 The structure of the address components is as follows:
@@ -145,7 +145,7 @@ The model:
 from address.models import AddressField
 
 class Person(models.Model):
-  address = AddressField()
+  address = AddressField(on_delete=models.CASCADE)
 ```
 
 The form:
