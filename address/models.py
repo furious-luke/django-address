@@ -4,7 +4,7 @@ import sys
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.fields.related import ForeignObject
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 
 try:
     from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor

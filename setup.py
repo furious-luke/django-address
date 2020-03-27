@@ -3,7 +3,7 @@ import sys
 
 from setuptools import find_packages, setup
 
-version = '0.2.1'
+version = '0.2.2'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
@@ -43,7 +43,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ['*.txt', '*.js', '*.html', '*.*']},
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'six'],
     zip_safe=False,
 
 )
