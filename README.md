@@ -2,9 +2,7 @@
 
 ## Installation
 
-Previously a patch for Django was required to make this app work, but as
-of 1.7 the patch is no longer needed. Installation is now done as per
-usual. The package is installed with:
+django-address requires python 3.3+ as of version 0.3.0. The package is installed with:
 
 ```bash
 pip install django-address
