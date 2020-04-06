@@ -98,7 +98,7 @@ class LocalityTestCase(TestCase):
 
     def test_unique_name_state(self):
         Locality.objects.create(name='Melbourne', state=self.au_qld)
-        self.assertRaises(IntegrityError, Locality.objects.create, name='Melbourne', state=self.au_vic)
+        self.assertRaises(IntegrityError, Locality.objects.create, name='Melbourne', state=self.au_qld)
 
     def test_unicode(self):
         self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, Victoria 3000, Australia')
@@ -159,7 +159,8 @@ class AddressTestCase(TestCase):
 class AddressFieldTestCase(TestCase):
 
     class TestModel(object):
-        address = AddressField()
+        from django.db import models
+        address = AddressField(on_delete=models.PROTECT)
 
     def setUp(self):
         self.ad1_dict = {
