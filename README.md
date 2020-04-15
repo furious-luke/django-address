@@ -23,6 +23,9 @@ You wil need to add your Google Maps API key to `settings.py` too:
 ```
 GOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'
 ```
+Don't forget to enable Google's Places API in your google cloud console.
+
+
 
 ## The Model
 
