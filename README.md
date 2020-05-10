@@ -8,16 +8,13 @@
 Django Address is a set of models and methods for working with postal addresses.
 
 # Requirements
- * Python (2.7, 3.5, 3.6, 3.7, 3.8)
+ * Python (3.5, 3.6, 3.7, 3.8)
  * Django (2.2, 3.0)
 
 We **recommend** and only officially support the latest patch release of each Python and Django series. 
 
 # Installation
-
-Previously a patch for Django was required to make this app work, but as
-of 1.7 the patch is no longer needed. Installation is now done as per
-usual. The package is installed with:
+For more detailed instructions, [view the Readme for the example site](https://github.com/furious-luke/django-address/blob/master/example_site/README.md) included with this package.
 
 ```bash
 pip install django-address
@@ -29,6 +26,7 @@ Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 INSTALLED_APPS = (
     ...
     'address',
+    ...
 )
 ```
 
