@@ -302,7 +302,7 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
-        kwargs['on_delete'] = 'models.CASCADE'
+        kwargs['on_delete'] = models.CASCADE
         super(AddressField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
