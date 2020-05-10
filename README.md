@@ -1,10 +1,20 @@
-# django-address
+# Django Address 
 
-## Installation
+**Django models for storing and retrieving postal addresses.** 
 
-Previously a patch for Django was required to make this app work, but as
-of 1.7 the patch is no longer needed. Installation is now done as per
-usual. The package is installed with:
+---
+
+# Overview
+Django Address is a set of models and methods for working with postal addresses.
+
+# Requirements
+ * Python (3.5, 3.6, 3.7, 3.8)
+ * Django (2.2, 3.0)
+
+We **recommend** and only officially support the latest patch release of each Python and Django series. 
+
+# Installation
+For more detailed instructions, [view the Readme for the example site](https://github.com/furious-luke/django-address/blob/master/example_site/README.md) included with this package.
 
 ```bash
 pip install django-address
@@ -16,6 +26,7 @@ Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 INSTALLED_APPS = (
     ...
     'address',
+    ...
 )
 ```
 
@@ -24,7 +35,7 @@ You wil need to add your Google Maps API key to `settings.py` too:
 GOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'
 ```
 
-## The Model
+# The Model
 
 The rationale behind the model structure is centered on trying to make
 it easy to enter addresses that may be poorly defined. The model field included
@@ -61,13 +72,13 @@ There are four Django models used:
     locality -> Locality
 ```
 
-## Address Field
+# Address Field
 
 To simplify storage and access of addresses, a subclass of `ForeignKey` named
 `AddressField` has been created. It provides an easy method for setting new
 addresses.
 
-### Creation
+## Creation
 
 It can be created using the same optional arguments as a ForeignKey field.
 For example:
@@ -80,7 +91,7 @@ For example:
     address2 = AddressField(related_name='+', blank=True, null=True)
 ```
 
-### Setting Values
+## Setting Values
 
 Values can be set either by assigning an Address object:
 
@@ -119,7 +130,7 @@ be set directly:
 obj.address = 'Out the back of 1 Somewhere Ave, Northcote, Australia'
 ```
 
-### Getting Values
+## Getting Values
 
 When accessed, the address field simply returns an Address object. This way
 all components may be accessed naturally through the object. For example::
@@ -168,13 +179,16 @@ The template:
 </body>
 ```
 
-## Disclaimer
+## Project Status Notes
 
-These instructions are a little shabby, I haven't had a whole lot of time to
-devote to explaining things thoroughly. If you're interested in using this
-but are having trouble getting it setup please feel free to email me at
-furious.luke@gmail.com, I'll assist as best I can and update the instructions
-in the process. Cheers!
+This library was created by [Luke Hodkinson](@furious-luke) originally focused on Australian addresses.
 
-Also, *there will be bugs*, please let me know of any issues and I'll do my
-best to fix them.
+In 2015 Luke began working to abstract the project so it could handle a wider variety of international addresses.
+
+This became the current `dev` branch.  While good progress was made on this, the branch became stale and releases
+continued under the current model architecture on master. 
+
+The project is currently in triage, for releases 0.2.2 and 0.2.3, with a both a model re-architecture and updated 
+requirements for 0.3.0. Read more about the project path forward [in this issue](#98).  
+
+If you have questions, bug reports or suggestions please create a New Issue for the project.
