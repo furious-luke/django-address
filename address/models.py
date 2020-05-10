@@ -132,8 +132,7 @@ def to_python(value):
     if isinstance(value, Address):
         return value
 
-    # If we have an integer, assume it is a model primary key. This is mostly for
-    # Django being a cunt.
+    # If we have an integer, assume it is a model primary key. 
     elif isinstance(value, (int, long)):
         return value
 
