@@ -4,7 +4,6 @@ import sys
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.fields.related import ForeignObject
-from django.utils.encoding import python_2_unicode_compatible
 
 try:
     from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
@@ -133,8 +132,7 @@ def to_python(value):
     if isinstance(value, Address):
         return value
 
-    # If we have an integer, assume it is a model primary key. This is mostly for
-    # Django being a cunt.
+    # If we have an integer, assume it is a model primary key. 
     elif isinstance(value, (int, long)):
         return value
 
@@ -161,7 +159,6 @@ def to_python(value):
 ##
 
 
-@python_2_unicode_compatible
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
     code = models.CharField(max_length=2, blank=True)  # not unique as there are duplicates (IT)
@@ -178,7 +175,6 @@ class Country(models.Model):
 ##
 
 
-@python_2_unicode_compatible
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
     code = models.CharField(max_length=3, blank=True)
@@ -204,7 +200,6 @@ class State(models.Model):
 ##
 
 
-@python_2_unicode_compatible
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
@@ -234,7 +229,6 @@ class Locality(models.Model):
 ##
 
 
-@python_2_unicode_compatible
 class Address(models.Model):
     street_number = models.CharField(max_length=20, blank=True)
     route = models.CharField(max_length=100, blank=True)
@@ -307,6 +301,7 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
+        kwargs['on_delete'] = models.CASCADE
         super(AddressField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
