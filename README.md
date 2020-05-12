@@ -22,12 +22,11 @@ pip install django-address
 
 Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 
-```python
-INSTALLED_APPS = (
-    ...
-    'address',
-    ...
-)
+```
+INSTALLED_APPS = [
+    ... 
+    'django_filters',
+]
 ```
 
 You wil need to add your Google Maps API key to `settings.py` too:
