@@ -21,6 +21,7 @@ setup(
     url='https://github.com/furious-luke/django-address',
     description='A django application for describing addresses.',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    long_description_content_type='text/markdown',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Django',
