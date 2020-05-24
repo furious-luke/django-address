@@ -25,7 +25,7 @@ Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 ```
 INSTALLED_APPS = [
     ... 
-    'django_filters',
+    'address',
 ]
 ```
 
