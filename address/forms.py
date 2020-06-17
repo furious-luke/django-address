@@ -2,9 +2,6 @@ import logging
 import sys
 
 from django import forms
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.safestring import mark_safe
 
 from .models import Address, to_python
 from .widgets import AddressWidget
@@ -17,9 +14,6 @@ if sys.version > '3':
 logger = logging.getLogger(__name__)
 
 __all__ = ['AddressWidget', 'AddressField']
-
-if not settings.GOOGLE_API_KEY:
-    raise ImproperlyConfigured("GOOGLE_API_KEY is not configured in settings.py")
 
 
 class AddressField(forms.ModelChoiceField):

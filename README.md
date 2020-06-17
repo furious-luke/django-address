@@ -24,8 +24,9 @@ Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 
 ```
 INSTALLED_APPS = [
-    ... 
-    'django_filters',
+    # ... 
+    'address',
+    # ... 
 ]
 ```
 
@@ -187,7 +188,6 @@ In 2015 Luke began working to abstract the project so it could handle a wider va
 This became the current `dev` branch.  While good progress was made on this, the branch became stale and releases
 continued under the current model architecture on master. 
 
-The project is currently in triage, for releases 0.2.2 and 0.2.3, with a both a model re-architecture and updated 
-requirements for 0.3.0. Read more about the project path forward [in this issue](#98).  
+The project is currently in triage, read more about the project path forward [in this issue](#98).  
 
 If you have questions, bug reports or suggestions please create a New Issue for the project.

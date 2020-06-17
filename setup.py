@@ -3,7 +3,7 @@ import sys
 
 from setuptools import find_packages, setup
 
-version = '0.2.2'
+version = '0.2.3'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
@@ -16,8 +16,8 @@ setup(
     version=version,
     author='Luke Hodkinson',
     author_email='furious.luke@gmail.com',
-    maintainer='Luke Hodkinson',
-    maintainer_email='furious.luke@gmail.com',
+    maintainer='Rob Banagale',
+    maintainer_email='rob@banagale.com',
     url='https://github.com/furious-luke/django-address',
     description='A django application for describing addresses.',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
