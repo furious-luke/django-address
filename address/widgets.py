@@ -84,7 +84,7 @@ class AddressWidget(forms.TextInput):
         ]
 
         # Now add the hidden fields.
-        elems.append('<div id="%s_components">' % name)
+        elems.append('<div id="%s_components" style="display: none;">' % name)
         for com in self.components:
             elems.append('<input type="hidden" name="%s_%s" data-geo="%s" value="%s" />' % (
                 name,
