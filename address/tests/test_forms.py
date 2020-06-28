@@ -52,6 +52,24 @@ class AddressFieldTestCase(TestCase):
         res = self.field.to_python(input)
         self.assertEqual(res.locality.name, 'Brooklyn')
 
+    def test_to_python_postal_town(self):
+        '''UK addresses with no `locality`, but a populated `postal_town`, should use the
+        `postal_town` as the `locality`'''
+        data = {
+            'raw': 'High Street, Leamington Spa',
+            'route': 'High Street',
+            'postal_town': 'Leamington Spa',
+            'state': 'England',
+            'state_code': 'England',
+            'country': 'United Kingdom',
+            'country_code': 'GB',
+            'postal_code': 'CV31',
+            'formatted': 'High St, Royal Leamington Spa, Leamington Spa CV31, UK'
+        }
+        address = self.field.to_python(data)
+        self.assertIsNotNone(address.locality)
+        self.assertEqual(address.locality.name, data["postal_town"])
+
     # TODO: Fix
     # def test_to_python_empty_state(self):
     #     val = self.field.to_python(self.missing_state)

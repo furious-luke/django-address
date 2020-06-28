@@ -13,6 +13,7 @@ $(function () {
 					'country_code',
 					'locality',
 					'postal_code',
+					'postal_town',
 					'route',
 					'street_number',
 					'state',

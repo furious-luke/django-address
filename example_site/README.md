@@ -9,6 +9,24 @@ This is a django demonstration project that shows how `django-address` can be us
 
 <img alt="Screenshot of django admin" src="https://user-images.githubusercontent.com/1409710/81486803-52860880-920c-11ea-8938-b5e216d29c40.png" width="450">
 
+## The person app and Person model
+The person app is a simple implementation of a model called Person that includes an `AddressField`
+and a first_name. When you geocode an address using the main landing page of this app, it saves
+the name in an object with a blank first_name.
+
+You can use Django Admin to view the saved Person objects and add a first name if you like.
+
+### Use of `null=true` on `address` of the Person model 
+Note that the Person model uses Address field with `null=true`.
+
+By default, `django-address` uses Cascade delete on AddressField. 
+
+This means if you for some reason delete an Address that is related to a Person or some other 
+model, it will also delete the Person.
+
+By setting `null=True`, deleting the Address associated with a Person will keep the Person 
+object instance and set `address` to null.
+
 # Setup
 ## Create virtual environment
    * `virtualenv env`

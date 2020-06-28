@@ -32,6 +32,7 @@ def _to_python(value):
     state_code = value.get('state_code', '')
     locality = value.get('locality', '')
     sublocality = value.get('sublocality', '')
+    postal_town = value.get('postal_town', '')
     postal_code = value.get('postal_code', '')
     street_number = value.get('street_number', '')
     route = value.get('route', '')
@@ -46,6 +47,11 @@ def _to_python(value):
     # Fix issue with NYC boroughs (https://code.google.com/p/gmaps-api-issues/issues/detail?id=635)
     if not locality and sublocality:
         locality = sublocality
+
+    # Fix issue with UK addresses with no locality
+    # (https://github.com/furious-luke/django-address/issues/114)
+    if not locality and postal_town:
+        locality = postal_town
 
     # If we have an inconsistent set of value bail out now.
     if (country or state or locality) and not (country and state and locality):
@@ -301,7 +307,9 @@ class AddressField(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         kwargs['to'] = 'address.Address'
-        kwargs['on_delete'] = models.CASCADE
+        # The address should be set to null when deleted if the relationship could be null
+        default_on_delete = models.SET_NULL if kwargs.get('null', False) else models.CASCADE
+        kwargs['on_delete'] = kwargs.get('on_delete', default_on_delete)
         super(AddressField, self).__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name, virtual_only=False):
