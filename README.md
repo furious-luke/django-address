@@ -78,6 +78,15 @@ To simplify storage and access of addresses, a subclass of `ForeignKey` named
 `AddressField` has been created. It provides an easy method for setting new
 addresses.
 
+## ON_DELETE behavior of Address Field
+
+By default, if you delete an Address that is related to another object, 
+Django's [cascade behavior](https://docs.djangoproject.com/en/dev/ref/models/fields/#django.db.models.ForeignKey.on_delete) 
+is used. This means the related object will also be deleted. You may also choose
+to set `null=True` when defining an address field to have the address set
+to Null instead of deleting the related object. For more information and an example,
+see the readme for the `django-address` example_site.
+ 
 ## Creation
 
 It can be created using the same optional arguments as a ForeignKey field.
