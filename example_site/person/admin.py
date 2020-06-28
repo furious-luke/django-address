@@ -9,6 +9,7 @@ class PersonAdmin(admin.ModelAdmin):
 
     list_display = (
         'id',
+        'first_name',
         'address',
     )
 
