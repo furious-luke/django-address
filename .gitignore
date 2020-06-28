@@ -8,3 +8,4 @@ media
 dist/
 *.egg-info/
 .idea
+.DS_Store
