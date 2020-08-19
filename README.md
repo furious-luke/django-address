@@ -188,6 +188,21 @@ The template:
 </body>
 ```
 
+### Running Django-Address Tests
+Django-address currently has partial form and model test coverage using `django.test.TestCase`.
+
+To run the current tests:
+
+ 1. [Clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository) `django-address` locally.
+ 1. Navigate to the example site, . `/django-address/example_site`
+ 1. Create a [virtual environment](https://www.tangowithdjango.com/book17/chapters/requirements.html#virtual-environments) and install the example site dependencies. For example:
+ 
+    ```
+    mkvirtualenv -p python3 django-address
+    pip install -r requirements.txt
+    ```
+ 1. Run `./manage.py test`
+ 
 ## Project Status Notes
 
 This library was created by [Luke Hodkinson](@furious-luke) originally focused on Australian addresses.
