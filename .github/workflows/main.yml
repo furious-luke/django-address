@@ -19,6 +19,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r example_site/requirements.txt
       - name: Run tests
-        run: python example_site/manage.py test example_site/
+        run: python example_site/manage.py test address
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
