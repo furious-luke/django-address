@@ -247,7 +247,6 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = 'Addresses'
         ordering = ('locality', 'route', 'street_number')
-        # unique_together = ('locality', 'route', 'street_number')
 
     def __str__(self):
         if self.formatted != '':
