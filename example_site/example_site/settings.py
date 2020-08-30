@@ -72,8 +72,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'example_site.wsgi.application'
 
-
-GOOGLE_API_KEY = ''
+# Specify your Google API key as environment variable GOOGLE_API_KEY
+# You may also specify it here, though be sure not to commit it to a repository
+GOOGLE_API_KEY = ''  # Specify your Google API key here
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', GOOGLE_API_KEY)
 
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
