@@ -189,7 +189,7 @@ The template:
 </body>
 ```
 
-### Running Django-Address Tests
+## Running Django-Address Tests
 Django-address currently has partial form and model test coverage using `django.test.TestCase`.
 
 To run the current tests:
@@ -203,6 +203,11 @@ To run the current tests:
     pip install -r requirements.txt
     ```
  1. Run `./manage.py test`
+
+## Important note regarding US Territories
+Django-address does not currently support the parsing of US territories aka Protectorates such as Guam or Puerto Rico.
+
+This topic is under active consideration and its status is described in [#82](https://github.com/furious-luke/django-address/issues/82)
  
 ## Project Status Notes
 
@@ -213,6 +218,6 @@ In 2015 Luke began working to abstract the project so it could handle a wider va
 This became the current `dev` branch.  While good progress was made on this, the branch became stale and releases
 continued under the current model architecture on master. 
 
-The project is currently in triage, read more about the project path forward [in this issue](#98).  
+The project is currently in open development, read more about the project status [in this issue](#98).  
 
 If you have questions, bug reports or suggestions please create a New Issue for the project.
