@@ -183,7 +183,7 @@ class Country(models.Model):
 
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
-    code = models.CharField(max_length=3, blank=True)
+    code = models.CharField(max_length=8, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='states')
 
     class Meta:
@@ -247,7 +247,6 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = 'Addresses'
         ordering = ('locality', 'route', 'street_number')
-        # unique_together = ('locality', 'route', 'street_number')
 
     def __str__(self):
         if self.formatted != '':

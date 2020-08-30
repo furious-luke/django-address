@@ -1,0 +1,45 @@
+name: Continuous Integration and Delivery
+
+on: [push]
+
+jobs:
+  run_tests_master:
+    if: github.ref == 'refs/heads/master'
+    name: Run Django-Address Tests on master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          ref: 'refs/heads/master'
+      - name: Set up Python 3.8.5
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8.5
+      - name: Install dependencies
+        run: pip install -r example_site/requirements.txt
+      - name: Run tests
+        run: python example_site/manage.py test example_site/
+        env:
+          SYSTEM_ENV: GITHUB_WORKFLOW
+
+  run_tests_develop:
+    if: github.ref == 'refs/heads/develop'
+    name: Run Django-Address Tests on develop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          ref: 'refs/heads/develop'
+      - name: Set up Python 3.8.5
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8.5
+      - name: Install dependencies
+        run: pip install -r example_site/requirements.txt
+      - name: Run tests
+        run: python example_site/manage.py test example_site/
+        env:
+          SYSTEM_ENV: GITHUB_WORKFLOW
+

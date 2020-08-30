@@ -48,7 +48,7 @@ This is hidden under Google Cloud Platform's console menu, under
    * Google Maps _Places API_ 
 
 ### Update this example_site django project's [settings.py].
-   * Add your key to `GOOGLE_API_KEY` 
+   * Add your key to `GOOGLE_API_KEY` or specify `GOOGLE_API_KEY` in your environment variables.
 
 ## Migrate
    * `python manage.py migrate`

@@ -96,10 +96,6 @@ class LocalityTestCase(TestCase):
         self.assertEqual(qs[3].name, 'Northcote')
         self.assertEqual(qs[4].name, 'Melbourne')
 
-    def test_unique_name_state(self):
-        Locality.objects.create(name='Melbourne', state=self.au_qld)
-        self.assertRaises(IntegrityError, Locality.objects.create, name='Melbourne', state=self.au_vic)
-
     def test_unicode(self):
         self.assertEqual(unicode(self.au_vic_mel), u'Melbourne, Victoria 3000, Australia')
         self.assertEqual(unicode(self.au_vic_ftz), u'Fitzroy, Victoria, Australia')
@@ -274,7 +270,7 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.route, 'Somewhere Street')
         self.assertEqual(self.test.address.locality.name, 'Northcote')
         self.assertEqual(self.test.address.locality.state.name, 'Victoria')
-        self.assertEqual(self.test.address.locality.state.code, '')
+        self.assertEqual(self.test.address.locality.state.code, 'Victoria')
         self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
 
     def test_assignment_from_dict_invalid_country_code(self):
@@ -296,9 +292,10 @@ class AddressFieldTestCase(TestCase):
             'route': 'Somewhere Street',
             'locality': 'Northcote',
             'state': 'Victoria',
-            'state_code': 'Something else',
+            'state_code': 'Something',
             'country': 'Australia',
         }
+        # This is invalid because state codes are expected to have a max of 8 characters
         self.assertRaises(ValueError, to_python, ad)
 
     def test_assignment_from_string(self):

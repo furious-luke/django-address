@@ -30,7 +30,8 @@ INSTALLED_APPS = [
 ]
 ```
 
-You wil need to add your Google Maps API key to `settings.py` too:
+You can either store your Google API key in an environment variable as `GOOGLE_API_KEY` or you can
+ specify the key in `settings.py`. If you have an environment variable set it will override what you put in settings.py.:
 ```
 GOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'
 ```
@@ -188,6 +189,26 @@ The template:
 </body>
 ```
 
+## Running Django-Address Tests
+Django-address currently has partial form and model test coverage using `django.test.TestCase`.
+
+To run the current tests:
+
+ 1. [Clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository) `django-address` locally.
+ 1. Navigate to the example site, . `/django-address/example_site`
+ 1. Create a [virtual environment](https://www.tangowithdjango.com/book17/chapters/requirements.html#virtual-environments) and install the example site dependencies. For example:
+ 
+    ```
+    mkvirtualenv -p python3 django-address
+    pip install -r requirements.txt
+    ```
+ 1. Run `./manage.py test`
+
+## Important note regarding US Territories
+Django-address does not currently support the parsing of US territories aka Protectorates such as Guam or Puerto Rico.
+
+This topic is under active consideration and its status is described in [#82](https://github.com/furious-luke/django-address/issues/82)
+ 
 ## Project Status Notes
 
 This library was created by [Luke Hodkinson](@furious-luke) originally focused on Australian addresses.
@@ -197,6 +218,6 @@ In 2015 Luke began working to abstract the project so it could handle a wider va
 This became the current `dev` branch.  While good progress was made on this, the branch became stale and releases
 continued under the current model architecture on master. 
 
-The project is currently in triage, read more about the project path forward [in this issue](#98).  
+The project is currently in open development, read more about the project status [in this issue](#98).  
 
 If you have questions, bug reports or suggestions please create a New Issue for the project.
