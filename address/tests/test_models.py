@@ -270,7 +270,7 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(self.test.address.route, 'Somewhere Street')
         self.assertEqual(self.test.address.locality.name, 'Northcote')
         self.assertEqual(self.test.address.locality.state.name, 'Victoria')
-        self.assertEqual(self.test.address.locality.state.code, '')
+        self.assertEqual(self.test.address.locality.state.code, 'Victoria')
         self.assertEqual(self.test.address.locality.state.country.name, 'Australia')
 
     def test_assignment_from_dict_invalid_country_code(self):
