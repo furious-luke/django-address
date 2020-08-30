@@ -292,9 +292,10 @@ class AddressFieldTestCase(TestCase):
             'route': 'Somewhere Street',
             'locality': 'Northcote',
             'state': 'Victoria',
-            'state_code': 'Something else',
+            'state_code': 'Something',
             'country': 'Australia',
         }
+        # This is invalid because state codes are expected to have a max of 8 characters
         self.assertRaises(ValueError, to_python, ad)
 
     def test_assignment_from_string(self):

@@ -183,7 +183,7 @@ class Country(models.Model):
 
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
-    code = models.CharField(max_length=3, blank=True)
+    code = models.CharField(max_length=8, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='states')
 
     class Meta:
