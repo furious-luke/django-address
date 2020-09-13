@@ -31,7 +31,9 @@ INSTALLED_APPS = [
 ```
 
 You can either store your Google API key in an environment variable as `GOOGLE_API_KEY` or you can
- specify the key in `settings.py`. If you have an environment variable set it will override what you put in settings.py.:
+ specify the key in `settings.py`. If you have an environment variable set it will override what you put in settings.py.
+ For more information, including enabling the Google Places API, refer to [the example site](https://github.com/furious-luke/django-address/blob/master/example_site/README.md).
+ 
 ```
 GOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'
 ```
