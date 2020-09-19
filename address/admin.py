@@ -32,5 +32,5 @@ class LocalityAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    search_fields = ('name',)
+    search_fields = ('street_number', 'route', 'raw')
     list_filter = (UnidentifiedListFilter,)
