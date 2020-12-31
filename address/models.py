@@ -237,8 +237,8 @@ class Locality(models.Model):
 
 class Address(models.Model):
     street_number = models.CharField(max_length=20, blank=True)
-    extra = models.CharField(max_length=20, blank=True)
     route = models.CharField(max_length=100, blank=True)
+    extra = models.CharField(max_length=20, blank=True)
     locality = models.ForeignKey(Locality, on_delete=models.CASCADE, related_name='addresses', blank=True, null=True)
     raw = models.CharField(max_length=200)
     formatted = models.CharField(max_length=200, blank=True)
