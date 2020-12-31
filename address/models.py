@@ -247,7 +247,7 @@ class Address(models.Model):
 
     class Meta:
         verbose_name_plural = 'Addresses'
-        ordering = ('locality', 'route', 'street_number')
+        ordering = ('locality', 'route', 'street_number', 'extra')
 
     def __str__(self):
         if self.formatted != '':
@@ -275,6 +275,7 @@ class Address(models.Model):
         ad = dict(
             street_number=self.street_number,
             route=self.route,
+            extra=self.extra,
             raw=self.raw,
             formatted=self.formatted,
             latitude=self.latitude if self.latitude else '',

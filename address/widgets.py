@@ -20,7 +20,7 @@ class AddressWidget(forms.TextInput):
     components = [('country', 'country'), ('country_code', 'country_short'),
                   ('locality', 'locality'), ('sublocality', 'sublocality'),
                   ('postal_code', 'postal_code'), ('postal_town', 'postal_town'),
-                  ('route', 'route'), ('street_number', 'street_number'),
+                  ('route', 'route'), ('street_number', 'street_number'), ('extra', 'extra'),
                   ('state', 'administrative_area_level_1'),
                   ('state_code', 'administrative_area_level_1_short'),
                   ('formatted', 'formatted_address'),
