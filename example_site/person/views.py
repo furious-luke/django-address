@@ -17,6 +17,7 @@ def home(request):
         form = PersonForm(request.POST)
         if form.is_valid():
             success = True
+            form.save()
     else:
         form = PersonForm(initial={'address': Address.objects.last()})
 
