@@ -259,6 +259,8 @@ class Address(models.Model):
             if self.route:
                 if txt:
                     txt += ' %s' % self.route
+            if self.extra and txt:
+                txt += ' %s' % self.extra
             locality = '%s' % self.locality
             if txt and locality:
                 txt += ', '
