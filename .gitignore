@@ -2,6 +2,8 @@
 *.pot
 *.pyc
 secret_const.py
+build/**
+
 __pycache__/
 local_settings.py
 db.sqlite3
