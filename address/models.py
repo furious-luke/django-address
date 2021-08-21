@@ -65,9 +65,7 @@ def _to_python(value):
         if country:
             if len(country_code) > Country._meta.get_field("code").max_length:
                 if country_code != country:
-                    raise ValueError(
-                        "Invalid country code (too long): %s" % country_code
-                    )
+                    raise ValueError("Invalid country code (too long): %s" % country_code)
                 country_code = ""
             country_obj = Country.objects.create(name=country, code=country_code)
         else:
@@ -82,22 +80,16 @@ def _to_python(value):
                 if state_code != state:
                     raise ValueError("Invalid state code (too long): %s" % state_code)
                 state_code = ""
-            state_obj = State.objects.create(
-                name=state, code=state_code, country=country_obj
-            )
+            state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
         else:
             state_obj = None
 
     # Handle the locality.
     try:
-        locality_obj = Locality.objects.get(
-            name=locality, postal_code=postal_code, state=state_obj
-        )
+        locality_obj = Locality.objects.get(name=locality, postal_code=postal_code, state=state_obj)
     except Locality.DoesNotExist:
         if locality:
-            locality_obj = Locality.objects.create(
-                name=locality, postal_code=postal_code, state=state_obj
-            )
+            locality_obj = Locality.objects.create(name=locality, postal_code=postal_code, state=state_obj)
         else:
             locality_obj = None
 
@@ -106,9 +98,7 @@ def _to_python(value):
         if not (street_number or route or locality):
             address_obj = Address.objects.get(raw=raw)
         else:
-            address_obj = Address.objects.get(
-                street_number=street_number, route=route, locality=locality_obj
-            )
+            address_obj = Address.objects.get(street_number=street_number, route=route, locality=locality_obj)
     except Address.DoesNotExist:
         address_obj = Address(
             street_number=street_number,
@@ -176,9 +166,7 @@ def to_python(value):
 
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
-    code = models.CharField(
-        max_length=2, blank=True
-    )  # not unique as there are duplicates (IT)
+    code = models.CharField(max_length=2, blank=True)  # not unique as there are duplicates (IT)
 
     class Meta:
         verbose_name_plural = "Countries"
@@ -196,9 +184,7 @@ class Country(models.Model):
 class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
     code = models.CharField(max_length=8, blank=True)
-    country = models.ForeignKey(
-        Country, on_delete=models.CASCADE, related_name="states"
-    )
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="states")
 
     class Meta:
         unique_together = ("name", "country")
@@ -224,9 +210,7 @@ class State(models.Model):
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
-    state = models.ForeignKey(
-        State, on_delete=models.CASCADE, related_name="localities"
-    )
+    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="localities")
 
     class Meta:
         verbose_name_plural = "Localities"
@@ -331,9 +315,7 @@ class AddressField(models.ForeignKey):
     def __init__(self, *args, **kwargs):
         kwargs["to"] = "address.Address"
         # The address should be set to null when deleted if the relationship could be null
-        default_on_delete = (
-            models.SET_NULL if kwargs.get("null", False) else models.CASCADE
-        )
+        default_on_delete = models.SET_NULL if kwargs.get("null", False) else models.CASCADE
         kwargs["on_delete"] = kwargs.get("on_delete", default_on_delete)
         super(AddressField, self).__init__(*args, **kwargs)
 

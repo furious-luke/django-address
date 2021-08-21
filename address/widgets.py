@@ -42,8 +42,7 @@ class AddressWidget(forms.TextInput):
         """Media defined as a dynamic property instead of an inner class."""
 
         js = [
-            "https://maps.googleapis.com/maps/api/js?libraries=places&key=%s"
-            % settings.GOOGLE_API_KEY,
+            "https://maps.googleapis.com/maps/api/js?libraries=places&key=%s" % settings.GOOGLE_API_KEY,
             "js/jquery.geocomplete.min.js",
             "address/js/address.js",
         ]
@@ -88,11 +87,7 @@ class AddressWidget(forms.TextInput):
         # Generate the elements. We should create a suite of hidden fields
         # For each individual component, and a visible field for the raw
         # input. Begin by generating the raw input.
-        elems = [
-            super(AddressWidget, self).render(
-                name, escape(ad.get("formatted", "")), attrs, **kwargs
-            )
-        ]
+        elems = [super(AddressWidget, self).render(name, escape(ad.get("formatted", "")), attrs, **kwargs)]
 
         # Now add the hidden fields.
         elems.append('<div id="%s_components" style="display: none;">' % name)

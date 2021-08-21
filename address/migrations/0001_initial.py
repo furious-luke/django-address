@@ -103,9 +103,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="locality",
             name="state",
-            field=models.ForeignKey(
-                on_delete=models.CASCADE, related_name="localities", to="address.State"
-            ),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name="localities", to="address.State"),
         ),
         migrations.AddField(
             model_name="address",

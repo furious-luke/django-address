@@ -13,6 +13,4 @@ class PersonAdmin(admin.ModelAdmin):
         "address",
     )
 
-    formfield_overrides = {
-        AddressField: {"widget": AddressWidget(attrs={"style": "width: 300px;"})}
-    }
+    formfield_overrides = {AddressField: {"widget": AddressWidget(attrs={"style": "width: 300px;"})}}
