@@ -3,7 +3,6 @@ import sys
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.fields.related import ForeignObject
 
 try:
     from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
@@ -138,7 +137,7 @@ def to_python(value):
     if isinstance(value, Address):
         return value
 
-    # If we have an integer, assume it is a model primary key. 
+    # If we have an integer, assume it is a model primary key.
     elif isinstance(value, (int, long)):
         return value
 
@@ -315,14 +314,8 @@ class AddressField(models.ForeignKey):
         from address.compat import compat_contribute_to_class
 
         compat_contribute_to_class(self, cls, name, virtual_only)
-        # super(ForeignObject, self).contribute_to_class(cls, name, virtual_only=virtual_only)
 
         setattr(cls, self.name, AddressDescriptor(self))
-
-    # def deconstruct(self):
-    #     name, path, args, kwargs = super(AddressField, self).deconstruct()
-    #     del kwargs['to']
-    #     return name, path, args, kwargs
 
     def formfield(self, **kwargs):
         from .forms import AddressField as AddressFormField

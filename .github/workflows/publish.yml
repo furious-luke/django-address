@@ -1,0 +1,69 @@
+name: Test and publish
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**.py'
+      - 'poetry.lock'
+      - '.github/workflows/publish.yml'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.1.2
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+      - name: Setup Poetry
+        uses: Gr1N/setup-poetry@v3
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+      - name: Install dependencies
+        run: |
+          cd example_site
+          poetry install
+
+      - name: Run tests
+        run: |
+          cd example_site
+          poetry run python manage.py test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run flake8
+        uses: py-actions/flake8@v1
+
+  bump:
+    name: Bump version
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Bump
+        run: echo TODO
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs: [bump]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Publish
+        run: echo TODO

@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.forms import ValidationError, Form
 from address.forms import AddressField, AddressWidget
-from address.models import Address
 
 
 class TestForm(Form):
@@ -81,8 +80,8 @@ class AddressFieldTestCase(TestCase):
         self.assertEqual(res.raw, 'Someplace')
 
     def test_render(self):
-        html = self.form.as_table()
-        # TODO: Check html
+        # TODO: Check return value.
+        self.form.as_table()
 
 
 class AddressWidgetTestCase(TestCase):
