@@ -5,7 +5,9 @@ on:
       - master
     paths:
       - '**.py'
-      - 'poetry.lock'
+      - 'example_site/pyproject.toml'
+      - 'example_site/poetry.lock'
+      - 'example_site/tox.ini'
       - '.github/workflows/publish.yml'
 
 jobs:
