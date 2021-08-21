@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from address.models import *
+
+from address.models import Country, State, Locality, Address
 
 
 class UnidentifiedListFilter(SimpleListFilter):
