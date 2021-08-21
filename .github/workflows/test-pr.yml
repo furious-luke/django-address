@@ -14,12 +14,17 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [3.5, 3.9]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Python
         uses: actions/setup-python@v2.1.2
+        with:
+          python-version: ${{ matrix.python }}
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
@@ -28,15 +33,13 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
-      - name: Install dependencies
-        run: |
-          cd example_site
-          poetry install
+      - name: Install Tox
+        run: pip install tox
 
       - name: Run tests
         run: |
           cd example_site
-          poetry run python manage.py test
+          tox -e py
 
   lint:
     name: Lint
