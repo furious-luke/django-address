@@ -16,7 +16,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [3.5, 3.9]
+        python: [3.6, 3.9]
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -37,8 +50,11 @@ jobs:
         run: pip install tox
 
       - name: Run tests
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost/postgres
         run: |
           cd example_site
+          cp -r ../address .
           tox -e py
 
   lint:

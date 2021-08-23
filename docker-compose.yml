@@ -1,0 +1,31 @@
+version: "3"
+services:
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@localhost/postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        - USER_ID
+        - GROUP_ID
+    environment:
+      - DATABASE_URL=psql://postgres:postgres@db/postgres
+      - GOOGLE_API_KEY
+    volumes:
+      - ./address:/code/address
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
