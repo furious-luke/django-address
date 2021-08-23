@@ -5,7 +5,9 @@ on:
       - develop
     paths:
       - '**.py'
-      - 'poetry.lock'
+      - 'example_site/pyproject.toml'
+      - 'example_site/poetry.lock'
+      - 'example_site/tox.ini'
       - '.github/workflows/test.yml'
 
 jobs:
@@ -26,15 +28,13 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
-      - name: Install dependencies
-        run: |
-          cd example_site
-          poetry install
+      - name: Install Tox
+        run: pip install tox
 
       - name: Run tests
         run: |
           cd example_site
-          poetry run python manage.py test
+          tox -e py
 
   lint:
     name: Lint

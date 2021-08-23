@@ -1,5 +1,3 @@
-import sys
-
 import django
 from django import forms
 from django.conf import settings
@@ -7,11 +5,6 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from .models import Address
-
-if sys.version > "3":
-    long = int
-    basestring = (str, bytes)
-    unicode = str
 
 USE_DJANGO_JQUERY = getattr(settings, "USE_DJANGO_JQUERY", False)
 JQUERY_URL = getattr(
@@ -78,7 +71,7 @@ class AddressWidget(forms.TextInput):
             ad = {}
         elif isinstance(value, dict):
             ad = value
-        elif isinstance(value, (int, long)):
+        elif isinstance(value, int):
             ad = Address.objects.get(pk=value)
             ad = ad.as_dict()
         else:
@@ -98,7 +91,7 @@ class AddressWidget(forms.TextInput):
             )
         elems.append("</div>")
 
-        return mark_safe(unicode("\n".join(elems)))
+        return mark_safe("\n".join(elems))
 
     def value_from_datadict(self, data, files, name):
         raw = data.get(name, "")

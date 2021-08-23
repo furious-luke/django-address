@@ -1,15 +1,9 @@
 import logging
-import sys
 
 from django import forms
 
 from .models import Address, to_python
 from .widgets import AddressWidget
-
-if sys.version > "3":
-    long = int
-    basestring = (str, bytes)
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
