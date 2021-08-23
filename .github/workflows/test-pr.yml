@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [3.5, 3.9]
+        python: [3.6, 3.9]
     services:
       postgres:
         image: postgres
