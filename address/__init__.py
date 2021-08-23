@@ -1,1 +1,1 @@
-default_app_config = 'address.apps.AddressConfig'
+default_app_config = "address.apps.AddressConfig"

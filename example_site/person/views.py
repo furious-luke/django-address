@@ -13,17 +13,19 @@ def home(request):
     else:
         google_api_key_set = False
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PersonForm(request.POST)
         if form.is_valid():
             success = True
             form.save()
     else:
-        form = PersonForm(initial={'address': Address.objects.last()})
+        form = PersonForm(initial={"address": Address.objects.last()})
 
-    context = {'form': form,
-               'google_api_key_set': google_api_key_set,
-               'success': success,
-               'addresses': addresses}
+    context = {
+        "form": form,
+        "google_api_key_set": google_api_key_set,
+        "success": success,
+        "addresses": addresses,
+    }
 
-    return render(request, 'example/home.html', context)
+    return render(request, "example/home.html", context)

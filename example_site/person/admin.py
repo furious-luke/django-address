@@ -8,17 +8,9 @@ from .models import Person
 class PersonAdmin(admin.ModelAdmin):
 
     list_display = (
-        'id',
-        'first_name',
-        'address',
+        "id",
+        "first_name",
+        "address",
     )
 
-    formfield_overrides = {
-        AddressField: {
-            'widget': AddressWidget(
-                attrs={
-                    'style': 'width: 300px;'
-                }
-            )
-        }
-    }
+    formfield_overrides = {AddressField: {"widget": AddressWidget(attrs={"style": "width: 300px;"})}}

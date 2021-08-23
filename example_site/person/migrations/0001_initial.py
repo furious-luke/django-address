@@ -10,15 +10,29 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('address', '0002_auto_20160213_1726'),
+        ("address", "0002_auto_20160213_1726"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Person',
+            name="Person",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address', address.models.AddressField(on_delete=django.db.models.deletion.CASCADE, to='address.Address')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "address",
+                    address.models.AddressField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="address.Address",
+                    ),
+                ),
             ],
         ),
     ]

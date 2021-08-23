@@ -43,8 +43,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setup Poetry
+        uses: Gr1N/setup-poetry@v3
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
       - name: Run flake8
-        uses: py-actions/flake8@v1
+        run: poetry run flake8
+
+      - name: Run Black
+        run: poetry run black --check .
 
   bump:
     name: Bump version
