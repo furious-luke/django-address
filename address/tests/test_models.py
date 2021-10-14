@@ -141,6 +141,10 @@ class AddressTestCase(TestCase):
         obj = Address.objects.create()
         self.assertRaises(ValidationError, obj.clean)
 
+    def test_formatted_autopopulation(self):
+        self.assertEqual(self.ad2.formatted, str(self.ad2), self.ad2.formatted)
+        self.assertEqual(str(Address.objects.get(id=self.ad1.id)), self.ad1.formatted)
+
     def test_ordering(self):
         qs = Address.objects.all()
         self.assertEqual(qs.count(), 4)
@@ -159,6 +163,9 @@ class AddressTestCase(TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.ad1), u"1 Some Street, Melbourne, Victoria 3000, Australia")
         self.assertEqual(unicode(self.ad_empty), u"Northcote, Victoria 3070, Australia")
+
+    def test_auto_formatted(self):
+        self.assertEqual(str(self.ad1), self.ad1.formatted, self.ad1.formatted)
 
 
 class AddressFieldTestCase(TestCase):

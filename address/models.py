@@ -94,7 +94,7 @@ def _to_python(value):
         else:
             address_obj = Address.objects.get(street_number=street_number, route=route, locality=locality_obj)
     except Address.DoesNotExist:
-        address_obj = Address(
+        address_obj = Address.objects.create(
             street_number=street_number,
             route=route,
             raw=raw,
@@ -103,15 +103,6 @@ def _to_python(value):
             latitude=latitude,
             longitude=longitude,
         )
-
-        # If "formatted" is empty try to construct it from other values.
-        if not address_obj.formatted:
-            address_obj.formatted = str(address_obj)
-
-        # Need to save.
-        address_obj.save()
-
-    # Done.
     return address_obj
 
 
