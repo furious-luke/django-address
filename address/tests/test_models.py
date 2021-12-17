@@ -304,7 +304,8 @@ class AddressFieldTestCase(TestCase):
             "country": "Australia",
         }
         # This is invalid because state codes are expected to have a max of 8 characters
-        self.assertRaises(ValueError, to_python, ad)
+        address = to_python(ad)
+        self.assertEqual(address.locality.state.code, 'Somethin')
 
     def test_assignment_from_string(self):
         self.test.address = to_python(self.ad1_dict["raw"])
