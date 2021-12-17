@@ -12,6 +12,7 @@ $(function () {
 					'country',
 					'country_code',
 					'locality',
+					'administrative_area_level_3',
 					'postal_code',
 					'postal_town',
 					'route',

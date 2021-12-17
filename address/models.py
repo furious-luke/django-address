@@ -10,6 +10,9 @@ except ImportError:
         ReverseSingleRelatedObjectDescriptor as ForwardManyToOneDescriptor,
     )
 
+from . import settings
+
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["Country", "State", "Locality", "Address", "AddressField"]
@@ -26,6 +29,7 @@ def _to_python(value):
     state = value.get("state", "")
     state_code = value.get("state_code", "")
     locality = value.get("locality", "")
+    administrative_area_level_3 = value.get('administrative_area_level_3', None)
     sublocality = value.get("sublocality", "")
     postal_town = value.get("postal_town", "")
     postal_code = value.get("postal_code", "")
@@ -47,6 +51,21 @@ def _to_python(value):
     # (https://github.com/furious-luke/django-address/issues/114)
     if not locality and postal_town:
         locality = postal_town
+
+    # Some locations doesn't have locality but having administrative_area_level_3, which both are representing city
+    # according to google: https://developers.google.com/maps/documentation/places/web-service/supported_types#table3
+    if not locality and administrative_area_level_3:
+        locality = administrative_area_level_3
+
+    if settings.ALLOW_UNKNOWN_STATES and country and locality and not state:
+        # address geocoded as Country and City without State
+        # handling case like "Copenhagen, Denmark"
+        state = 'UNKNOWN'
+        value['state_code'] = 'UKWN'
+
+    # This can happen if the user types in a value into the input then enter without selecting from the list.
+    if not settings.ALLOW_DUMMY_ADDRESSES and not country and not state_code and not locality:
+        raise ValidationError("Please choose from one of the location options in the dropdown.")
 
     # If we have an inconsistent set of value bail out now.
     if (country or state or locality) and not (country and state and locality):
@@ -70,10 +89,13 @@ def _to_python(value):
         state_obj = State.objects.get(name=state, country=country_obj)
     except State.DoesNotExist:
         if state:
-            if len(state_code) > State._meta.get_field("code").max_length:
-                if state_code != state:
-                    raise ValueError("Invalid state code (too long): %s" % state_code)
-                state_code = ""
+            state_code_max_length = State._meta.get_field("code").max_length
+            if len(state_code) > state_code_max_length:
+                logger.warning(f'Trimming too long state_code {state_code} to {state_code_max_length} char only'
+                               f' for raw value: {raw}')
+                # This is very odd case, raising error will not help as user has no choice to fix data
+                # best is to trim value to max allowed, example for this case: "Chum Phae Khon Kaen Thailand"
+                state_code = state_code[:state_code_max_length]
             state_obj = State.objects.create(name=state, code=state_code, country=country_obj)
         else:
             state_obj = None
@@ -147,7 +169,8 @@ def to_python(value):
         try:
             return _to_python(value)
         except InconsistentDictError:
-            return Address.objects.create(raw=value["raw"])
+            if settings.ALLOW_DUMMY_ADDRESSES:
+                return Address.objects.create(raw=value["raw"])
 
     # Not in any of the formats I recognise.
     raise ValidationError("Invalid address value.")
