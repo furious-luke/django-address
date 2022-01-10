@@ -16,7 +16,7 @@ if sys.version > '3':
     basestring = (str, bytes)
     unicode = str
 
-__all__ = ['Country', 'State', 'Locality', 'Address', 'AddressField']
+__all__ = ['Country', 'State', 'Locality', 'Address',]
 
 
 class InconsistentDictError(Exception):
@@ -295,30 +295,4 @@ class AddressDescriptor(ForwardManyToOneDescriptor):
     def __set__(self, inst, value):
         super(AddressDescriptor, self).__set__(inst, to_python(value))
 
-##
-# A field for addresses in other models.
-##
 
-
-class AddressField(models.ForeignKey):
-    description = 'An address'
-
-    def __init__(self, *args, **kwargs):
-        kwargs['to'] = 'address.Address'
-        # The address should be set to null when deleted if the relationship could be null
-        default_on_delete = models.SET_NULL if kwargs.get('null', False) else models.CASCADE
-        kwargs['on_delete'] = kwargs.get('on_delete', default_on_delete)
-        super(AddressField, self).__init__(*args, **kwargs)
-
-    def contribute_to_class(self, cls, name, virtual_only=False):
-        from address.compat import compat_contribute_to_class
-
-        compat_contribute_to_class(self, cls, name, virtual_only)
-
-        setattr(cls, self.name, AddressDescriptor(self))
-
-    def formfield(self, **kwargs):
-        from .forms import AddressField as AddressFormField
-        defaults = dict(form_class=AddressFormField)
-        defaults.update(kwargs)
-        return super(AddressField, self).formfield(**defaults)

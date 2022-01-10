@@ -1,5 +1,5 @@
 from django.contrib import admin
-from address.models import AddressField
+from address.fields import AddressField
 from address.forms import AddressWidget
 from .models import Person
 
