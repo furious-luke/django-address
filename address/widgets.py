@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 from .models import Address
 
@@ -32,7 +33,7 @@ class AddressWidget(forms.TextInput):
         js = [
             'https://maps.googleapis.com/maps/api/js?libraries=places&key=%s' % settings.GOOGLE_API_KEY,
             'js/jquery.geocomplete.min.js',
-            'address/js/address.js',
+            reverse('address.js'),
         ]
 
         if JQUERY_URL:
