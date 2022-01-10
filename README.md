@@ -30,12 +30,31 @@ INSTALLED_APPS = [
 ]
 ```
 
+Then, add the url in your urls.py
+
+```
+urlpatterns = [
+    # other urls...
+    path('address/', include('address.urls')),
+]
+```
+
 You can either store your Google API key in an environment variable as `GOOGLE_API_KEY` or you can
  specify the key in `settings.py`. If you have an environment variable set it will override what you put in settings.py.
  For more information, including enabling the Google Places API, refer to [the example site](https://github.com/furious-luke/django-address/blob/master/example_site/README.md).
  
 ```
 GOOGLE_API_KEY = 'AIzaSyD--your-google-maps-key-SjQBE'
+```
+
+## Settings
+Is possible to specify custom settings in your settings module.
+For example, to get address only for the Australia add these to your settings
+
+```python
+ADDRESS_SETTINGS = {
+    "country": ["AU"]
+}
 ```
 
 # The Model
