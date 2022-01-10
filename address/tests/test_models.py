@@ -2,7 +2,8 @@ from django.test import TestCase
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
-from address.models import Country, State, Locality, Address, AddressField
+from address.models import Country, State, Locality, Address
+from address.fields import AddressField
 from address.models import to_python
 
 # Python 3 fixes.

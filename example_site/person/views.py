@@ -2,10 +2,9 @@ from django.conf import settings
 from django.shortcuts import render
 
 from address.models import Address
-from .forms import PersonForm
-
 
 def home(request):
+    from .forms import PersonForm
     success = False
     addresses = Address.objects.all()
     if settings.GOOGLE_API_KEY:
