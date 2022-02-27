@@ -3,6 +3,29 @@ name = "django-address"
 version = "0.2.5"
 description = "A django application for describing addresses."
 authors = ["Luke Hodkinson <furious.luke@gmail.com>"]
+license = "BSD"
+readme = "README.md"
+homepage = "https://github.com/furious-luke/django-address"
+repository = "https://github.com/furious-luke/django-address"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 2.2",
+    "Framework :: Django :: 3.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8"
+]
+packages = [
+    { include = "address" }
+]
+include = ["setup.cfg"]
 
 [tool.poetry.dependencies]
 python = ">=3.5"
