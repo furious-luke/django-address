@@ -22,7 +22,7 @@ pip install django-address
 
 Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 
-```
+```python
 INSTALLED_APPS = [
     # ... 
     'address',
@@ -173,7 +173,7 @@ class Person(models.Model):
 
 The form:
 
-```
+```python
 from address.forms import AddressField
 
 class PersonForm(forms.Form):
