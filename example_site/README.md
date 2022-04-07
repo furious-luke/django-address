@@ -21,9 +21,9 @@ blank first_name.
 
 You can use Django Admin to view the saved Person objects and add a first name if you like.
 
-### Use of `null=true` on `address` of the Person model
+### Use of `null=True` on `address` of the Person model
 
-Note that the Person model uses Address field with `null=true`.
+Note that the Person model uses Address field with `null=True`.
 
 By default, `django-address` uses Cascade delete on AddressField. 
 
