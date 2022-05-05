@@ -22,7 +22,7 @@ pip install django-address
 
 Then, add `address` to your `INSTALLED_APPS` list in `settings.py`:
 
-```
+```python
 INSTALLED_APPS = [
     # ... 
     'address',
@@ -173,7 +173,7 @@ class Person(models.Model):
 
 The form:
 
-```
+```python
 from address.forms import AddressField
 
 class PersonForm(forms.Form):
@@ -220,6 +220,6 @@ In 2015 Luke began working to abstract the project so it could handle a wider va
 This became the current `dev` branch.  While good progress was made on this, the branch became stale and releases
 continued under the current model architecture on master. 
 
-The project is currently in open development, read more about the project status [in this issue](#98).  
+The project is currently in open development, read more about the project status [in this issue](https://github.com/furious-luke/django-address/issues/98).  
 
 If you have questions, bug reports or suggestions please create a New Issue for the project.

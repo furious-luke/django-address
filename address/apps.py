@@ -7,3 +7,4 @@ class AddressConfig(AppConfig):
     """
 
     name = "address"
+    default_auto_field = "django.db.models.AutoField"
